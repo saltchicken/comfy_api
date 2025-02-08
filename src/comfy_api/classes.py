@@ -146,46 +146,48 @@ class ComfyClient:
                     cv2.destroyAllWindows()
 
     def view_video_boomerang(self, video_bytes):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
-            temp_video.write(video_bytes)
-            temp_filename = temp_video.name  # Get the file path
+        for node_id in videos:
+            for video_data in videos[node_id]:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+                    temp_video.write(video_data)
+                    temp_filename = temp_video.name  # Get the file path
 
-            cap = cv2.VideoCapture(temp_filename)
+                    cap = cv2.VideoCapture(temp_filename)
 
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
-            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    fps = cap.get(cv2.CAP_PROP_FPS)
+                    frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
+                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-            # **Fix: Adjust delay to compensate for double playthrough**
-            delay = max(1, int((frame_time / 2) * 1000))  # Halve the delay
+                    # **Fix: Adjust delay to compensate for double playthrough**
+                    delay = max(1, int((frame_time / 2) * 1000))  # Halve the delay
 
-            while True:  # Infinite loop for boomerang effect
-                # Play video forward
-                for frame_num in range(total_frames):
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-                    cv2.imshow("Boomerang Video", frame)
-                    if cv2.waitKey(delay) & 0xFF == ord('q'):
-                        cap.release()
-                        cv2.destroyAllWindows()
-                        exit()
+                    while True:  # Infinite loop for boomerang effect
+                        # Play video forward
+                        for frame_num in range(total_frames):
+                            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+                            ret, frame = cap.read()
+                            if not ret:
+                                break
+                            cv2.imshow("Boomerang Video", frame)
+                            if cv2.waitKey(delay) & 0xFF == ord('q'):
+                                cap.release()
+                                cv2.destroyAllWindows()
+                                exit()
 
-                # Play video backward
-                for frame_num in range(total_frames - 1, -1, -1):
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-                    cv2.imshow("Boomerang Video", frame)
-                    if cv2.waitKey(delay) & 0xFF == ord('q'):
-                        cap.release()
-                        cv2.destroyAllWindows()
-                        exit()
+                        # Play video backward
+                        for frame_num in range(total_frames - 1, -1, -1):
+                            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+                            ret, frame = cap.read()
+                            if not ret:
+                                break
+                            cv2.imshow("Boomerang Video", frame)
+                            if cv2.waitKey(delay) & 0xFF == ord('q'):
+                                cap.release()
+                                cv2.destroyAllWindows()
+                                exit()
 
-            cap.release()
-            cv2.destroyAllWindows()
+                    cap.release()
+                    cv2.destroyAllWindows()
 
 
     # def view_images(self, images):
