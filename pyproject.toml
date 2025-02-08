@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comfy_api"
+version = "0.1.1"
+dependencies = [
+]
+
+[project.scripts]
+comfy = "comfy_api.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

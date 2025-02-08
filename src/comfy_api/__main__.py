@@ -199,7 +199,7 @@ def randomize_seed(workflow):
         # if value['class_type'] == 'KSampler':
         #     workflow[key]['inputs']['seed'] = int.from_bytes(urllib.request.urlopen("http://{}/random_seed".format(server_address)).read(), byteorder='big')
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='ComfyUI prompt')
     parser.add_argument('workflow', type=str, help='Workflow JSON')
     args = parser.parse_args()
