@@ -1,14 +1,6 @@
 import argparse
 from .classes import ComfyClient
 
-
-def print_keys(d):
-    for key, value in d.items():
-        print(f"Key: {key}")
-        print(value['_meta']['title'])
-        # print(f"Value: {value}")
-
-
 def main():
     parser = argparse.ArgumentParser(description='ComfyUI prompt')
     parser.add_argument('workflow', type=str, help='Workflow JSON')
@@ -19,4 +11,5 @@ def main():
     args = parser.parse_args()
 
     comfy_client = ComfyClient(args.host + ":8188")
-    comfy_client.run_worflow(args.workflow, args.seed, args.prompt)
+    videos = comfy_client.run_workflow(args.workflow, args.seed, args.prompt)
+    comfy_client.view_video(videos)

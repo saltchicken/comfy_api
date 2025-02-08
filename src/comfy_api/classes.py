@@ -13,6 +13,12 @@ import numpy as np
 import tempfile
 import time
 
+def print_keys(d):
+    for key, value in d.items():
+        print(f"Key: {key}")
+        print(value['_meta']['title'])
+        # print(f"Value: {value}")
+
 class ComfyClient:
     def __init__(self, server_address):
         self.client_id = str(uuid.uuid4())
@@ -104,38 +110,40 @@ class ComfyClient:
 
         return output_videos
 
-    def view_video(self, video_bytes):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
-            temp_video.write(video_bytes)
-            temp_filename = temp_video.name  # Get the file path
+    def view_video(self, videos):
+        for node_id in videos:
+            for video_data in videos[node_id]:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+                    temp_video.write(video_data)
+                    temp_filename = temp_video.name  # Get the file path
 
-            cap = cv2.VideoCapture(temp_filename)
+                    cap = cv2.VideoCapture(temp_filename)
 
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
+                    fps = cap.get(cv2.CAP_PROP_FPS)
+                    frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
 
-            while True:  # Infinite loop for replaying video
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to start
+                    while True:  # Infinite loop for replaying video
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to start
 
-                while cap.isOpened():
-                    start_time = time.time()  # Track frame start time
+                        while cap.isOpened():
+                            start_time = time.time()  # Track frame start time
 
-                    ret, frame = cap.read()
-                    if not ret:
-                        break  # Video ended, restart from the beginning
+                            ret, frame = cap.read()
+                            if not ret:
+                                break  # Video ended, restart from the beginning
 
-                    cv2.imshow("Video", frame)
+                            cv2.imshow("Video", frame)
 
-                    # Wait to maintain FPS
-                    elapsed_time = time.time() - start_time
-                    delay = max(1, int((frame_time - elapsed_time) * 1000))  # Convert to ms
-                    if cv2.waitKey(delay) & 0xFF == ord('q'):  # Press 'q' to exit
-                        cap.release()
-                        cv2.destroyAllWindows()
-                        exit()
+                            # Wait to maintain FPS
+                            elapsed_time = time.time() - start_time
+                            delay = max(1, int((frame_time - elapsed_time) * 1000))  # Convert to ms
+                            if cv2.waitKey(delay) & 0xFF == ord('q'):  # Press 'q' to exit
+                                cap.release()
+                                cv2.destroyAllWindows()
+                                exit()
 
-            cap.release()
-            cv2.destroyAllWindows()
+                    cap.release()
+                    cv2.destroyAllWindows()
 
     def view_video_boomerang(self, video_bytes):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
@@ -194,49 +202,25 @@ class ComfyClient:
             if value['class_type'] == 'RandomNoise':
                 workflow[key]['inputs']['noise_seed'] = seed
 
-    def run_worflow(self, workflow, seed, prompt):
-        # server_address = host + ":8188"
-        # print(server_address)
+    def run_workflow(self, workflow, seed, prompt):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
         except:
             print("Could not open file {}".format(workflow))
             exit(1)
-        # print(workflow)
-        # print_keys(workflow)
-        #
-        #     if value['class_type'] == 'RandomNoise':
-        # for key, value in workflow.items():
-        #         print(workflow[key]['inputs']['noise_seed'])
+
         if seed:
             self.set_seed(workflow, seed)
         else:
             self.set_seed(workflow, random.randint(10**14, 10**15 -1))
 
-        # for key, value in workflow.items():
-        #     if value['class_type'] == 'RandomNoise':
-        #         print(workflow[key]['inputs']['noise_seed'])
-
-
-
-        #set the text prompt for our positive CLIPTextEncode
-        # prompt["6"]["inputs"]["text"] = "masterpiece best quality man"
-
-        #set the seed for our KSampler node
-        # prompt["3"]["inputs"]["seed"] = 5
         ws = websocket.WebSocket()
 
         ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
         # images = get_images(ws, workflow)
         videos = self.get_videos(ws, workflow)
         ws.close()
-        # with urllib.request.urlopen("http://10.0.0.3:8188/view?filename=Hunyuan+_00447.mp4&subfolder=&type=output") as response:
-        #     video = response.read()
-        #     print(video)
-        #     view_video_boomerang(video)
+        return videos
 
-        for node_id in videos:
-            for video_data in videos[node_id]:
-                self.view_video(video_data)
 
