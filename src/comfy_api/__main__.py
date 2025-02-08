@@ -14,7 +14,7 @@ import numpy as np
 import tempfile
 import time
 
-server_address = "10.0.0.3:8188"
+server_address = '10.0.0.3:8188'
 client_id = str(uuid.uuid4())
 
 def queue_prompt(prompt):
@@ -191,44 +191,43 @@ def print_keys(d):
         print(f"Key: {key}")
         print(value['_meta']['title'])
         # print(f"Value: {value}")
-        
-def randomize_seed(workflow):
+
+def set_seed(workflow, seed):
     for key, value in workflow.items():
         if value['class_type'] == 'RandomNoise':
-            workflow[key]['inputs']['noise_seed'] = random.randint(10**14, 10**15 -1)
-        # if value['class_type'] == 'KSampler':
-        #     workflow[key]['inputs']['seed'] = int.from_bytes(urllib.request.urlopen("http://{}/random_seed".format(server_address)).read(), byteorder='big')
+            workflow[key]['inputs']['noise_seed'] = seed
 
-def main():
-    parser = argparse.ArgumentParser(description='ComfyUI prompt')
-    parser.add_argument('workflow', type=str, help='Workflow JSON')
-    args = parser.parse_args()
-
+def run_worflow(workflow, host, seed, prompt):
+    # server_address = host + ":8188"
+    # print(server_address)
     try:
-        with open(args.workflow, "r") as f:
+        with open(workflow, "r") as f:
             workflow = json.load(f)
     except:
-        print("Could not open file {}".format(args.workflow))
+        print("Could not open file {}".format(workflow))
         exit(1)
-
     # print(workflow)
     # print_keys(workflow)
     #
     #     if value['class_type'] == 'RandomNoise':
     # for key, value in workflow.items():
     #         print(workflow[key]['inputs']['noise_seed'])
-    randomize_seed(workflow)
+    if seed:
+        set_seed(workflow, seed)
+    else:
+        set_seed(workflow, random.randint(10**14, 10**15 -1))
+
     # for key, value in workflow.items():
     #     if value['class_type'] == 'RandomNoise':
     #         print(workflow[key]['inputs']['noise_seed'])
 
 
 
-#set the text prompt for our positive CLIPTextEncode
-# prompt["6"]["inputs"]["text"] = "masterpiece best quality man"
+    #set the text prompt for our positive CLIPTextEncode
+    # prompt["6"]["inputs"]["text"] = "masterpiece best quality man"
 
-#set the seed for our KSampler node
-# prompt["3"]["inputs"]["seed"] = 5
+    #set the seed for our KSampler node
+    # prompt["3"]["inputs"]["seed"] = 5
     ws = websocket.WebSocket()
 
     ws.connect("ws://{}/ws?clientId={}".format(server_address, client_id))
@@ -243,6 +242,19 @@ def main():
     for node_id in videos:
         for video_data in videos[node_id]:
             view_video(video_data)
+
+def main():
+    parser = argparse.ArgumentParser(description='ComfyUI prompt')
+    parser.add_argument('workflow', type=str, help='Workflow JSON')
+    parser.add_argument('--host', default='localhost:8188', help='ComfyUI server address')
+    parser.add_argument('--seed', default=None, help='Random seed for RandomNoise')
+    parser.add_argument('--prompt', default='', help='Prompt text')
+
+    args = parser.parse_args()
+
+
+    run_worflow(args.workflow, args.host, args.seed, args.prompt)
+
 
 
 
