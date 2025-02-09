@@ -252,7 +252,10 @@ class ComfyClient:
             self.set_resolution(workflow, resolution)
 
         if steps:
-            self.set_steps(workflow, steps)
+            if steps == 'trirandom' or steps == 'random':
+                self.set_steps(workflow, random.triangular(6, 40, 20))
+            else:
+                self.set_steps(workflow, steps)
 
         if sampler:
             samplers = ['euler', # 20 Better, 10 Good, 8 decent
