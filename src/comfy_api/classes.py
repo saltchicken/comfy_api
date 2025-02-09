@@ -214,13 +214,19 @@ class ComfyClient:
                 workflow[key]['inputs']['scheduler'] = scheduler
                 print(f"Scheduler: {scheduler}")
 
+    def set_guidance(self, workflow, guidance):
+        for key, value in workflow.items():
+            if value['class_type'] == 'FluxGuidance':
+                workflow[key]['inputs']['guidance'] = guidance
+                print(f"Guidance: {guidance}")
+
     def get_lora_strength(self, workflow, lora):
         for key, value in workflow.items():
             if value['class_type'] == 'LoraLoaderModelOnly':
                 if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
                     return workflow[key]['inputs']['strength_model']
 
-    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler, scheduler):
+    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler, scheduler, guidance):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -326,6 +332,12 @@ class ComfyClient:
                     print("Lora strength out of range. Staying to default")
                     continue
 
+        if guidance:
+            self.set_guidance(workflow, guidance)
+
+        self.client_id = random.randint(10**14, 10**15 -1)
+        print(f"Client ID: {self.client_id}")
+        self.client_id = str(self.client_id)
 
 
         ws = websocket.WebSocket()
