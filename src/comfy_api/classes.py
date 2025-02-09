@@ -192,7 +192,12 @@ class ComfyClient:
                     print(f"Setting strength for {lora} to {lora_strength}")
                     workflow[key]['inputs']['strength_model'] = lora_strength
 
-    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora):
+    def set_steps(self, workflow, steps):
+        for key, value in workflow.items():
+            if value['class_type'] == 'BasicScheduler':
+                workflow[key]['inputs']['steps'] = steps
+
+    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -216,6 +221,9 @@ class ComfyClient:
 
         if resolution:
             self.set_resolution(workflow, resolution)
+
+        if steps:
+            self.set_steps(workflow, steps)
 
         if lora:
             for l in lora:
