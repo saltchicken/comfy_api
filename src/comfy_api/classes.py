@@ -117,6 +117,9 @@ class ComfyClient:
                     temp_video.write(video_data)
                     temp_filename = temp_video.name  # Get the file path
 
+                    cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
+                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
                     cap = cv2.VideoCapture(temp_filename)
 
                     fps = cap.get(cv2.CAP_PROP_FPS)
