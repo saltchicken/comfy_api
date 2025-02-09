@@ -264,10 +264,10 @@ class ComfyClient:
         if sampler:
             samplers = ['euler', # 20 Better, 10 Good, 8 decent
                         # 'euler_cfg_pp',  # Trash at 20 steps
-                        'euler_ancestral', 
-                        'euler_ancestral_cfg_pp', 
-                        # 'heun', # 30 steps at least. 50 is good.
-                        #'heunpp2', # Good at 30
+                        # 'euler_ancestral', # NEED TO TEST 
+                        # 'euler_ancestral_cfg_pp', # NEED TO TEST
+                        'heun', # 30 steps at least. 50 is good.
+                        'heunpp2', # Good at 30
                         # 'dpm_2',  # Test higher than 20
                         # 'dpm_2_ancestral', # Blurry
                         # 'lms',  #Might need more than 40
@@ -279,21 +279,22 @@ class ComfyClient:
                         # 'dpmpp_sde_gpu', 
                         # 'dpmpp_2m',  # 30 steps at least
                         # 'dpmpp_2m_cfg_pp',  #Complete trash at 20
-                        'dpmpp_2m_sde', 
-                        'dpmpp_2m_sde_gpu', 
+                        # 'dpmpp_2m_sde', # NEED TO TEST
+                        # 'dpmpp_2m_sde_gpu', # NEED TO TEST
                         # 'dpmpp_3m_sde', 
                         # 'dpmpp_3m_sde_gpu', 
                         # 'ddpm', 
-                        # 'lcm',  # Good
-                        'ipndm', 
+                        'lcm',  # Good
+                        # 'ipndm', # NEED TO TEST
                         # 'ipndm_v', # Blurry at 40 
-                        #'deis', # 30 steps. Maybe less
-                        'res_multistep', 
+                        'deis', # 30 steps. Maybe less
+                        # 'res_multistep', # NEED TO TEST
                         # 'res_multistep_cfg_pp', 
-                        # 'gradient_estimation',  # 30 steps decent
-                        'ddim', 
+                        'gradient_estimation',  # 30 steps decent
+                        # 'ddim', # NEED TO TEST
                         # 'uni_pc', # Trash
-                        'uni_pc_bh2']
+                        # 'uni_pc_bh2' # NEED TO TEST
+                        ]
             if sampler in samplers:
                 self.set_sampler(workflow, sampler)
             elif sampler == 'random':
@@ -307,7 +308,7 @@ class ComfyClient:
                           'exponential',
                           'sgm_uniform',
                           'simple',
-                          'ddm_uniform',
+                          # 'ddm_uniform', # DOUBLE CHECK NAME
                           'beta',
                           'linear_quadratic',
                           'kl_optimal']
