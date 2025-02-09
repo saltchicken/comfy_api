@@ -204,7 +204,12 @@ class ComfyClient:
             if value['class_type'] == 'RandomNoise':
                 workflow[key]['inputs']['noise_seed'] = seed
 
-    def run_workflow(self, workflow, seed, prompt):
+    def set_length(self, workflow, length):
+        for key, value in workflow.items():
+            if value['class_type'] == 'EmptyHunyuanLatentVideo':
+                workflow[key]['inputs']['length'] = length
+
+    def run_workflow(self, workflow, seed, prompt, length):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -216,6 +221,9 @@ class ComfyClient:
             self.set_seed(workflow, seed)
         else:
             self.set_seed(workflow, random.randint(10**14, 10**15 -1))
+
+        if length:
+            self.set_length(workflow, length)
 
         ws = websocket.WebSocket()
 
