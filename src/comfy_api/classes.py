@@ -333,7 +333,10 @@ class ComfyClient:
                     continue
 
         if guidance:
-            self.set_guidance(workflow, guidance)
+            if guidance == 'random':
+                self.set_guidance(workflow, random.uniform(1.0, 15.0))
+            else:
+                self.set_guidance(workflow, guidance)
 
         self.client_id = random.randint(10**14, 10**15 -1)
         print(f"Client ID: {self.client_id}")
