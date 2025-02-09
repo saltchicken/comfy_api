@@ -164,16 +164,19 @@ class ComfyClient:
         for key, value in workflow.items():
             if value['class_type'] == 'EmptyHunyuanLatentVideo':
                 workflow[key]['inputs']['length'] = length
+                print(f"Length: {length}")
 
     def set_boomerang(self, workflow, boomerang=True):
         for key, value in workflow.items():
             if value['class_type'] == 'VHS_VideoCombine':
                 workflow[key]['inputs']['pingpong'] = boomerang
+                print(f"Boomerang: {boomerang}")
 
     def set_prompt(self, workflow, prompt):
         for key, value in workflow.items():
             if value['class_type'] == 'CLIPTextEncode':
                 workflow[key]['inputs']['text'] = prompt
+                print(f"Prompt: {prompt}")
 
     def set_resolution(self, workflow, resolution):
         for key, value in workflow.items():
@@ -184,20 +187,28 @@ class ComfyClient:
                     return
                 workflow[key]['inputs']['width'] = resolution[0]
                 workflow[key]['inputs']['height'] = resolution[1]
+                print(f"Resolution: {resolution[0]}x{resolution[1]}")
 
     def set_lora_strength(self, workflow, lora, lora_strength):
         for key, value in workflow.items():
             if value['class_type'] == 'LoraLoaderModelOnly':
                 if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
-                    print(f"Setting strength for {lora} to {lora_strength}")
                     workflow[key]['inputs']['strength_model'] = lora_strength
+                    print(f"Setting strength for {lora} to {lora_strength}")
 
     def set_steps(self, workflow, steps):
         for key, value in workflow.items():
             if value['class_type'] == 'BasicScheduler':
                 workflow[key]['inputs']['steps'] = steps
+                print(f"Steps: {steps}")
 
-    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps):
+    def set_sampler(self, workflow, sampler):
+        for key, value in workflow.items():
+            if value['class_type'] == 'KSamplerSelect':
+                workflow[key]['inputs']['sampler_name'] = sampler
+                print(f"Sampler: {sampler}")
+
+    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -225,17 +236,42 @@ class ComfyClient:
         if steps:
             self.set_steps(workflow, steps)
 
+        if sampler:
+            samplers = ['euler', 'euler_cfg_pp', 'euler_ancestral', 'euler_ancestral_cfg_pp', 'heun', 'heunpp2', 'dpm_2', 'dpm_2_ancestral', 'lms', 'dpm_fast', 'dpm_adaptive', 'dpm_2_ancestral', 'dpm_2_ancestral_cfg_pp', 'dpmpp_sde', 'dpmpp_sde_gpu', 'dpmpp_2m', 'dpmpp_2m_cfg_pp', 'dpmpp_2m_sde', 'dpmpp_2m_sde_gpu', 'dpmpp_3m_sde', 'dpmpp_3m_sde_gpu', 'ddpm', 'lcm', 'ipndm', 'ipndm_v', 'deis', 'res_multistep', 'res_multistep_cfg_pp', 'gradient_estimation', 'ddim', 'uni_pc', 'uni_pc_bh2']
+            samplers.remove('dpmpp_3m_sde')
+            samplers.remove('dpmpp_sde_gpu')
+            samplers.remove('dpmpp_sde')
+            samplers.remove('heun') # 30 steps at least. 50 is good
+            samplers.remove('res_multistep_cfg_pp')
+            samplers.remove('dpmpp_3m_sde_gpu')
+            samplers.remove('dpm_adaptive')
+            samplers.remove('deis') # 30 steps. Maybe less
+            samplers.remove('dpmpp_2m') # 30 steps at least
+            samplers.remove('gradient_estimation') # 30 steps decent
+            samplers.remove('lcm') # Good
+            if sampler in samplers:
+                self.set_sampler(workflow, sampler)
+            elif sampler == 'random':
+                self.set_sampler(workflow, random.choice(samplers))
+            else:
+                print("Sampler doesn't exit. Using default")
+
         if lora:
             for l in lora:
                 l = l.split("=")
                 if len(l) != 2:
                     print("Bad format for lora. Staying to default")
                     continue
-                else:
-                    if float(l[1]) > 2.0 or float(l[1]) < 0.0:
-                        print("Lora strength out of range. Staying to default")
-                        continue
+                if l[1] == 'random':
+                    print(f"Setting random lora strength for {l[0]}")
+                    self.set_lora_strength(workflow, l[0], random.uniform(0.0, 1.5))
+                    continue
+                if float(l[1]) < 2.0 or float(l[1]) > 0.0:
                     self.set_lora_strength(workflow, l[0], l[1])
+                else:
+                    print("Lora strength out of range. Staying to default")
+                    continue
+
 
 
         ws = websocket.WebSocket()
