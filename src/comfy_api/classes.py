@@ -208,6 +208,12 @@ class ComfyClient:
                 workflow[key]['inputs']['sampler_name'] = sampler
                 print(f"Sampler: {sampler}")
 
+    def get_lora_strength(self, workflow, lora):
+        for key, value in workflow.items():
+            if value['class_type'] == 'LoraLoaderModelOnly':
+                if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
+                    return workflow[key]['inputs']['strength_model']
+
     def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler):
         try:
             with open(workflow, "r") as f:
@@ -237,49 +243,38 @@ class ComfyClient:
             self.set_steps(workflow, steps)
 
         if sampler:
-            samplers = ['euler', 
-                        'euler_cfg_pp', 
+            samplers = ['euler', # 20 Better, 10 Good, 8 decent
+                        # 'euler_cfg_pp',  # Trash at 20 steps
                         'euler_ancestral', 
                         'euler_ancestral_cfg_pp', 
-                        'heun', 
-                        'heunpp2', 
-                        'dpm_2', 
-                        'dpm_2_ancestral', 
+                        # 'heun', # 30 steps at least. 50 is good.
+                        #'heunpp2', # Good at 30
+                        # 'dpm_2',  # Test higher than 20
+                        # 'dpm_2_ancestral', # Blurry
                         'lms', 
-                        'dpm_fast', 
-                        'dpm_adaptive', 
+                        # 'dpm_fast', # blurry
+                        # 'dpm_adaptive', 
                         'dpm_2_ancestral', 
-                        'dpm_2_ancestral_cfg_pp', 
-                        'dpmpp_sde', 
-                        'dpmpp_sde_gpu', 
-                        'dpmpp_2m', 
+                        # 'dpm_2_ancestral_cfg_pp', 
+                        # 'dpmpp_sde', 
+                        # 'dpmpp_sde_gpu', 
+                        # 'dpmpp_2m',  # 30 steps at least
                         'dpmpp_2m_cfg_pp', 
                         'dpmpp_2m_sde', 
                         'dpmpp_2m_sde_gpu', 
-                        'dpmpp_3m_sde', 
-                        'dpmpp_3m_sde_gpu', 
-                        'ddpm', 
-                        'lcm', 
+                        # 'dpmpp_3m_sde', 
+                        # 'dpmpp_3m_sde_gpu', 
+                        # 'ddpm', 
+                        # 'lcm',  # Good
                         'ipndm', 
                         'ipndm_v', 
-                        'deis', 
+                        #'deis', # 30 steps. Maybe less
                         'res_multistep', 
-                        'res_multistep_cfg_pp', 
-                        'gradient_estimation', 
+                        # 'res_multistep_cfg_pp', 
+                        # 'gradient_estimation',  # 30 steps decent
                         'ddim', 
-                        'uni_pc', 
+                        # 'uni_pc', # Trash
                         'uni_pc_bh2']
-            samplers.remove('dpmpp_3m_sde')
-            samplers.remove('dpmpp_sde_gpu')
-            samplers.remove('dpmpp_sde')
-            samplers.remove('heun') # 30 steps at least. 50 is good
-            samplers.remove('res_multistep_cfg_pp')
-            samplers.remove('dpmpp_3m_sde_gpu')
-            samplers.remove('dpm_adaptive')
-            samplers.remove('deis') # 30 steps. Maybe less
-            samplers.remove('dpmpp_2m') # 30 steps at least
-            samplers.remove('gradient_estimation') # 30 steps decent
-            samplers.remove('lcm') # Good
             if sampler in samplers:
                 self.set_sampler(workflow, sampler)
             elif sampler == 'random':
@@ -293,10 +288,15 @@ class ComfyClient:
                 if len(l) != 2:
                     print("Bad format for lora. Staying to default")
                     continue
+                if l[1] == 'trirandom':
+                    print(f"Setting triangular random lora strength for {l[0]}")
+                    current_lora_strength = self.get_lora_strength(workflow, l[0])
+                    random_strength = random.triangular(0.0, 2.0, current_lora_strength)
+                    self.set_lora_strength(workflow, l[0], round(random_strength, 2))
+                    continue
                 if l[1] == 'random':
                     print(f"Setting random lora strength for {l[0]}")
-                    self.set_lora_strength(workflow, l[0], random.uniform(0.0, 1.5))
-                    continue
+                    self.set_lora_strength(workflow, l[0], round(random.uniform(0.0, 1.5), 2))
                 if float(l[1]) < 2.0 or float(l[1]) > 0.0:
                     self.set_lora_strength(workflow, l[0], l[1])
                 else:

@@ -1,5 +1,7 @@
 import argparse
+import time
 from .classes import ComfyClient
+
 
 def main():
     parser = argparse.ArgumentParser(description='ComfyUI prompt')
@@ -17,5 +19,9 @@ def main():
     args = parser.parse_args()
 
     comfy_client = ComfyClient(args.host + ":8188")
+    start_time = time.time()
     videos = comfy_client.run_workflow(args.workflow, args.seed, args.prompt, args.length, args.boomerang, args.resolution, args.lora, args.steps, args.sampler)
+    end_time = time.time()
+    elapsed_time = round(end_time - start_time, 2)
+    print(f"{elapsed_time=}")
     comfy_client.view_video(videos)
