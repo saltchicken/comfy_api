@@ -12,6 +12,7 @@ import io
 import numpy as np
 import tempfile
 import time
+import platform
 
 def print_keys(d):
     for key, value in d.items():
@@ -118,7 +119,8 @@ class ComfyClient:
                     temp_filename = temp_video.name  # Get the file path
 
                     cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
-                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                    if platform.system() == "Linux":
+                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
                     cap = cv2.VideoCapture(temp_filename)
 
