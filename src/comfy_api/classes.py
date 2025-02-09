@@ -249,7 +249,11 @@ class ComfyClient:
             self.set_prompt(workflow, prompt)
 
         if resolution:
-            self.set_resolution(workflow, resolution)
+            if resolution == "random":
+                resolutions = ["640x480", "480x640", "512x512"]
+                self.set_resolution(workflow, random.choice(resolutions))
+            else:
+                self.set_resolution(workflow, resolution)
 
         if steps:
             if steps == 'trirandom' or steps == 'random':
@@ -274,7 +278,7 @@ class ComfyClient:
                         # 'dpmpp_sde', 
                         # 'dpmpp_sde_gpu', 
                         # 'dpmpp_2m',  # 30 steps at least
-                        'dpmpp_2m_cfg_pp', 
+                        # 'dpmpp_2m_cfg_pp',  #Complete trash at 20
                         'dpmpp_2m_sde', 
                         'dpmpp_2m_sde_gpu', 
                         # 'dpmpp_3m_sde', 
