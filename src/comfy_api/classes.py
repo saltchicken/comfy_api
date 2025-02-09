@@ -99,11 +99,11 @@ class ComfyClient:
         history = self.get_history(prompt_id)[prompt_id]
         for node_id in history['outputs']:
             node_output = history['outputs'][node_id]
-            print(node_output)
+            # print(node_output)
             videos_output = []
             if 'gifs' in node_output:
-                print("found gif")
                 for video in node_output['gifs']:
+                    print(f"{video['fullpath']=}")
                     video_data = self.get_video(video['filename'], video['subfolder'], video['type'])
                     videos_output.append(video_data)
             output_videos[node_id] = videos_output
@@ -208,13 +208,19 @@ class ComfyClient:
                 workflow[key]['inputs']['sampler_name'] = sampler
                 print(f"Sampler: {sampler}")
 
+    def set_scheduler(self, workflow, scheduler):
+        for key, value in workflow.items():
+            if value['class_type'] == 'BasicScheduler':
+                workflow[key]['inputs']['scheduler'] = scheduler
+                print(f"Scheduler: {scheduler}")
+
     def get_lora_strength(self, workflow, lora):
         for key, value in workflow.items():
             if value['class_type'] == 'LoraLoaderModelOnly':
                 if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
                     return workflow[key]['inputs']['strength_model']
 
-    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler):
+    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler, scheduler):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -251,10 +257,10 @@ class ComfyClient:
                         #'heunpp2', # Good at 30
                         # 'dpm_2',  # Test higher than 20
                         # 'dpm_2_ancestral', # Blurry
-                        'lms', 
+                        # 'lms',  #Might need more than 40
                         # 'dpm_fast', # blurry
                         # 'dpm_adaptive', 
-                        'dpm_2_ancestral', 
+                        # 'dpm_2_ancestral',  #Trash at 20 and long load
                         # 'dpm_2_ancestral_cfg_pp', 
                         # 'dpmpp_sde', 
                         # 'dpmpp_sde_gpu', 
@@ -267,7 +273,7 @@ class ComfyClient:
                         # 'ddpm', 
                         # 'lcm',  # Good
                         'ipndm', 
-                        'ipndm_v', 
+                        # 'ipndm_v', # Blurry at 40 
                         #'deis', # 30 steps. Maybe less
                         'res_multistep', 
                         # 'res_multistep_cfg_pp', 
@@ -281,6 +287,23 @@ class ComfyClient:
                 self.set_sampler(workflow, random.choice(samplers))
             else:
                 print("Sampler doesn't exit. Using default")
+
+        if scheduler:
+            schedulers = ['normal',
+                          'karras',
+                          'exponential',
+                          'sgm_uniform',
+                          'simple',
+                          'ddm_uniform',
+                          'beta',
+                          'linear_quadratic',
+                          'kl_optimal']
+            if scheduler in schedulers:
+                self.set_scheduler(workflow, scheduler)
+            elif scheduler == 'random':
+                self.set_scheduler(workflow, random.choice(schedulers))
+            else:
+                print("Scheduler doesn't exit. Using default")
 
         if lora:
             for l in lora:
