@@ -158,13 +158,41 @@ class ComfyClient:
         for key, value in workflow.items():
             if value['class_type'] == 'RandomNoise':
                 workflow[key]['inputs']['noise_seed'] = seed
+                print(f"Seed: {seed}")
 
     def set_length(self, workflow, length):
         for key, value in workflow.items():
             if value['class_type'] == 'EmptyHunyuanLatentVideo':
                 workflow[key]['inputs']['length'] = length
 
-    def run_workflow(self, workflow, seed, prompt, length):
+    def set_boomerang(self, workflow, boomerang=True):
+        for key, value in workflow.items():
+            if value['class_type'] == 'VHS_VideoCombine':
+                workflow[key]['inputs']['pingpong'] = boomerang
+
+    def set_prompt(self, workflow, prompt):
+        for key, value in workflow.items():
+            if value['class_type'] == 'CLIPTextEncode':
+                workflow[key]['inputs']['text'] = prompt
+
+    def set_resolution(self, workflow, resolution):
+        for key, value in workflow.items():
+            if value['class_type'] == 'EmptyHunyuanLatentVideo':
+                resolution = resolution.split("x")
+                if len(resolution) != 2:
+                    print("Bad resolution format. Staying to default")
+                    return
+                workflow[key]['inputs']['width'] = resolution[0]
+                workflow[key]['inputs']['height'] = resolution[1]
+
+    def set_lora_strength(self, workflow, lora, lora_strength):
+        for key, value in workflow.items():
+            if value['class_type'] == 'LoraLoaderModelOnly':
+                if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
+                    print(f"Setting strength for {lora} to {lora_strength}")
+                    workflow[key]['inputs']['strength_model'] = lora_strength
+
+    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora):
         try:
             with open(workflow, "r") as f:
                 workflow = json.load(f)
@@ -179,6 +207,28 @@ class ComfyClient:
 
         if length:
             self.set_length(workflow, length)
+
+        if boomerang:
+            self.set_boomerang(workflow)
+
+        if prompt:
+            self.set_prompt(workflow, prompt)
+
+        if resolution:
+            self.set_resolution(workflow, resolution)
+
+        if lora:
+            for l in lora:
+                l = l.split("=")
+                if len(l) != 2:
+                    print("Bad format for lora. Staying to default")
+                    continue
+                else:
+                    if float(l[1]) > 2.0 or float(l[1]) < 0.0:
+                        print("Lora strength out of range. Staying to default")
+                        continue
+                    self.set_lora_strength(workflow, l[0], l[1])
+
 
         ws = websocket.WebSocket()
 
