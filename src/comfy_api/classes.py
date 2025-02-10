@@ -25,6 +25,7 @@ class ComfyClient:
     def __init__(self, server_address):
         self.client_id = str(uuid.uuid4())
         self.server_address = server_address
+        self.workflow = None
 
     def queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -160,70 +161,72 @@ class ComfyClient:
     #             image.show()
 
 
-    def set_seed(self, workflow, seed):
-        for key, value in workflow.items():
+    def set_seed(self, seed):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'RandomNoise':
-                workflow[key]['inputs']['noise_seed'] = seed
+                self.workflow[key]['inputs']['noise_seed'] = seed
                 print(f"Seed: {seed}")
 
-    def set_length(self, workflow, length):
-        for key, value in workflow.items():
+    def set_length(self, length):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'EmptyHunyuanLatentVideo':
-                workflow[key]['inputs']['length'] = length
+                self.workflow[key]['inputs']['length'] = length
                 print(f"Length: {length}")
 
-    def set_boomerang(self, workflow, boomerang=True):
-        for key, value in workflow.items():
+    def set_boomerang(self, boomerang=True):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'VHS_VideoCombine':
-                workflow[key]['inputs']['pingpong'] = boomerang
+                self.workflow[key]['inputs']['pingpong'] = boomerang
                 print(f"Boomerang: {boomerang}")
 
-    def set_prompt(self, workflow, prompt):
-        for key, value in workflow.items():
+    def set_prompt(self, prompt):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'CLIPTextEncode':
-                workflow[key]['inputs']['text'] = prompt
+                self.workflow[key]['inputs']['text'] = prompt
                 print(f"Prompt: {prompt}")
 
-    def set_resolution(self, workflow, resolution):
-        for key, value in workflow.items():
+    def set_resolution(self, resolution):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'EmptyHunyuanLatentVideo':
                 resolution = resolution.split("x")
                 if len(resolution) != 2:
                     print("Bad resolution format. Staying to default")
                     return
-                workflow[key]['inputs']['width'] = resolution[0]
-                workflow[key]['inputs']['height'] = resolution[1]
+                self.workflow[key]['inputs']['width'] = resolution[0]
+                self.workflow[key]['inputs']['height'] = resolution[1]
                 print(f"Resolution: {resolution[0]}x{resolution[1]}")
 
-    def set_lora_strength(self, workflow, lora_key, lora, lora_strength):
-        for key, value in workflow.items():
+    def set_lora_strength(self, lora_key, lora, lora_strength):
+        for key, value in self.workflow.items():
             if key == lora_key:
-                workflow[key]['inputs']['lora_name'] = lora + ".safetensors"
-                workflow[key]['inputs']['strength_model'] = lora_strength
+                print(f"{lora=}")
+                self.workflow[key]['inputs']['lora_name'] = lora + ".safetensors"
+                self.workflow[key]['inputs']['strength_model'] = lora_strength
                 print(f"Setting strength for {lora} to {lora_strength}")
+                print(self.workflow)
 
-    def set_steps(self, workflow, steps):
-        for key, value in workflow.items():
+    def set_steps(self, steps):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'BasicScheduler':
-                workflow[key]['inputs']['steps'] = steps
+                self.workflow[key]['inputs']['steps'] = steps
                 print(f"Steps: {steps}")
 
-    def set_sampler(self, workflow, sampler):
-        for key, value in workflow.items():
+    def set_sampler(self, sampler):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'KSamplerSelect':
-                workflow[key]['inputs']['sampler_name'] = sampler
+                self.workflow[key]['inputs']['sampler_name'] = sampler
                 print(f"Sampler: {sampler}")
 
-    def set_scheduler(self, workflow, scheduler):
-        for key, value in workflow.items():
+    def set_scheduler(self, scheduler):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'BasicScheduler':
-                workflow[key]['inputs']['scheduler'] = scheduler
+                self.workflow[key]['inputs']['scheduler'] = scheduler
                 print(f"Scheduler: {scheduler}")
 
-    def set_guidance(self, workflow, guidance):
-        for key, value in workflow.items():
+    def set_guidance(self, guidance):
+        for key, value in self.workflow.items():
             if value['class_type'] == 'FluxGuidance':
-                workflow[key]['inputs']['guidance'] = guidance
+                self.workflow[key]['inputs']['guidance'] = guidance
                 print(f"Guidance: {guidance}")
 
     # def get_lora_strength(self, workflow, lora):
@@ -232,49 +235,98 @@ class ComfyClient:
     #             if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
     #                 return workflow[key]['inputs']['strength_model']
 
-    def get_lora_nodes(self, workflow):
+    def get_lora_nodes(self):
         lora_nodes = []
-        for key, value in workflow.items():
+        for key, value in self.workflow.items():
             if value['class_type'] == 'LoraLoaderModelOnly':
                 lora_nodes.append(key)
         return lora_nodes
 
-    def run_workflow(self, workflow, **kwargs):
-        with open(workflow, "r") as f:
-            try:
-                    workflow = json.load(f)
-            except:
-                print("Could not open file {}".format(workflow))
-                exit(1)
+    def run_workflow(self, **kwargs):
+        if "lora" in kwargs:
+            lora = kwargs["lora"]
+            if len(lora) == 1:
+                workflow_file = "SingleLoraHunyuan.json"
+            elif len(lora) == 2:
+                workflow_file = "DoubleLoraHunyuan.json"
+            elif len(lora) == 3:
+                workflow_file = "TripleLoraHunyuan.json"
+            elif len(lora) == 4:
+                workflow_file = "QuadLoraHunyuan.json"
+            elif len(lora) == 5:
+                workflow_file = "PentaLoraHunyuan.json"
+            elif len(lora) == 6:
+                workflow_file = "HexaLoraHunyuan.json"
+            else:
+                print("Too many Loras. Exiting")
+            with open(workflow_file, "r") as f:
+                try:
+                    self.workflow = json.load(f)
+                except:
+                    print("Could not open file {}".format(workflow_file))
+                    exit(1)
+
+            lora_nodes = self.get_lora_nodes()
+            # print(f"{lora_nodes=}")
+            if len(lora_nodes) != len(lora):
+                print("Lora parameter mismatched. Exiting")
+                sys.exit(1)
+            for l in lora:
+                l = l.split("=")
+                if len(l) != 2:
+                    print("Lora parameter incorrect. Exiting")
+                    sys.exit(1)
+                if l[1] == 'trirandom':
+                    print(f"Setting triangular random lora strength for {l[0]}")
+                    # current_lora_strength = self.get_lora_strength(workflow, l[0])
+                    random_strength = random.triangular(0.0, 1.3, 0.85)
+                    self.set_lora_strength(lora_nodes.pop(), l[0], round(random_strength, 2))
+                elif l[1] == 'random':
+                    print(f"Setting random lora strength for {l[0]}")
+                    self.set_lora_strength(lora_nodes.pop(), l[0], round(random.uniform(0.0, 1.5), 2))
+                elif float(l[1]) < 2.0 or float(l[1]) > 0.0:
+                    self.set_lora_strength(lora_nodes.pop(), l[0], l[1])
+                else:
+                    print("Lora strength out of range. Staying to default")
+                    continue
+        else:
+            workflow_file = "BasicHunyuan.json"
+
+            with open(workflow_file, "r") as f:
+                try:
+                    self.workflow = json.load(f)
+                except:
+                    print("Could not open file {}".format(workflow_file))
+                    exit(1)
 
         if "seed" in kwargs:
-            self.set_seed(workflow, kwargs["seed"])
+            self.set_seed(kwargs["seed"])
         else:
-            self.set_seed(workflow, random.randint(10**14, 10**15 -1))
+            self.set_seed(random.randint(10**14, 10**15 -1))
 
         if "length" in kwargs:
-            self.set_length(workflow, kwargs["length"])
+            self.set_length(kwargs["length"])
 
         if "boomerang" in kwargs:
-            self.set_boomerang(workflow)
+            self.set_boomerang()
 
         if "prompt" in kwargs:
-            self.set_prompt(workflow, kwargs["prompt"])
+            self.set_prompt(kwargs["prompt"])
 
         if "resolution" in kwargs:
             resolution = kwargs["resolution"]
             if resolution == "random":
                 resolutions = ["640x480", "480x640", "512x512"]
-                self.set_resolution(workflow, random.choice(resolutions))
+                self.set_resolution(random.choice(resolutions))
             else:
-                self.set_resolution(workflow, resolution)
+                self.set_resolution(resolution)
 
         if "steps" in kwargs:
             steps = kwargs["steps"]
             if steps == 'trirandom' or steps == 'random':
-                self.set_steps(workflow, random.triangular(6, 40, 20))
+                self.set_steps(random.triangular(6, 40, 20))
             else:
-                self.set_steps(workflow, steps)
+                self.set_steps(steps)
 
         if "sampler" in kwargs:
             sampler = kwargs["sampler"]
@@ -312,9 +364,9 @@ class ComfyClient:
                         # 'uni_pc_bh2' # NEED TO TEST
                         ]
             if sampler in samplers:
-                self.set_sampler(workflow, sampler)
+                self.set_sampler(sampler)
             elif sampler == 'random':
-                self.set_sampler(workflow, random.choice(samplers))
+                self.set_sampler(random.choice(samplers))
             else:
                 print("Sampler doesn't exit. Using default")
 
@@ -330,43 +382,19 @@ class ComfyClient:
                           'linear_quadratic',
                           'kl_optimal']
             if scheduler in schedulers:
-                self.set_scheduler(workflow, scheduler)
+                self.set_scheduler(scheduler)
             elif scheduler == 'random':
-                self.set_scheduler(workflow, random.choice(schedulers))
+                self.set_scheduler(random.choice(schedulers))
             else:
                 print("Scheduler doesn't exit. Using default")
 
-        if "lora" in kwargs:
-            lora = kwargs["lora"]
-            lora_nodes = self.get_lora_nodes(workflow)
-            if len(lora_nodes) != len(lora):
-                print("Lora parameter mismatched. Exiting")
-                sys.exit(1)
-            for l in lora:
-                l = l.split("=")
-                if len(l) != 2:
-                    print("Lora parameter incorrect. Exiting")
-                    sys.exit(1)
-                if l[1] == 'trirandom':
-                    print(f"Setting triangular random lora strength for {l[0]}")
-                    # current_lora_strength = self.get_lora_strength(workflow, l[0])
-                    random_strength = random.triangular(0.0, 1.3, 0.85)
-                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], round(random_strength, 2))
-                elif l[1] == 'random':
-                    print(f"Setting random lora strength for {l[0]}")
-                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], round(random.uniform(0.0, 1.5), 2))
-                elif float(l[1]) < 2.0 or float(l[1]) > 0.0:
-                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], l[1])
-                else:
-                    print("Lora strength out of range. Staying to default")
-                    continue
 
-        if "guidance":
+        if "guidance" in kwargs:
             guidance = kwargs["guidance"]
             if guidance == 'random':
-                self.set_guidance(workflow, random.uniform(1.0, 15.0))
+                self.set_guidance(random.uniform(1.0, 15.0))
             else:
-                self.set_guidance(workflow, guidance)
+                self.set_guidance(guidance)
 
         self.client_id = random.randint(10**14, 10**15 -1)
         print(f"Client ID: {self.client_id}")
@@ -377,7 +405,7 @@ class ComfyClient:
 
         ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
         # images = get_images(ws, workflow)
-        videos = self.get_videos(ws, workflow)
+        videos = self.get_videos(ws, self.workflow)
         ws.close()
         return videos
 

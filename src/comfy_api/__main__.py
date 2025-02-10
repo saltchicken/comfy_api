@@ -4,7 +4,7 @@ from .classes import ComfyClient
 
 def main():
     parser = argparse.ArgumentParser(description='ComfyUI prompt')
-    parser.add_argument('workflow', type=str, help='Workflow JSON')
+    # parser.add_argument('workflow', type=str, help='Workflow JSON')
     parser.add_argument('--host', default='localhost:8188', help='ComfyUI server address')
 
     # Optional arguments stored in a dictionary
@@ -24,12 +24,14 @@ def main():
     # Extract optional arguments into a dictionary
     workflow_options = { 
         k: v for k, v in vars(args).items() 
-        if k not in ['workflow', 'host'] and v is not None
+        if k not in ['host'] and v is not None
     }
+
+    print(workflow_options)
 
     comfy_client = ComfyClient(args.host)
     start_time = time.time()
-    videos = comfy_client.run_workflow(args.workflow, **workflow_options)
+    videos = comfy_client.run_workflow(**workflow_options)
     elapsed_time = round(time.time() - start_time, 2)
 
     print(f"{elapsed_time=}")
