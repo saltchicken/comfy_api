@@ -239,42 +239,45 @@ class ComfyClient:
                 lora_nodes.append(key)
         return lora_nodes
 
-    def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler, scheduler, guidance):
-        try:
-            with open(workflow, "r") as f:
-                workflow = json.load(f)
-        except:
-            print("Could not open file {}".format(workflow))
-            exit(1)
+    def run_workflow(self, workflow, **kwargs):
+        with open(workflow, "r") as f:
+            try:
+                    workflow = json.load(f)
+            except:
+                print("Could not open file {}".format(workflow))
+                exit(1)
 
-        if seed:
-            self.set_seed(workflow, seed)
+        if "seed" in kwargs:
+            self.set_seed(workflow, kwargs["seed"])
         else:
             self.set_seed(workflow, random.randint(10**14, 10**15 -1))
 
-        if length:
-            self.set_length(workflow, length)
+        if "length" in kwargs:
+            self.set_length(workflow, kwargs["length"])
 
-        if boomerang:
+        if "boomerang" in kwargs:
             self.set_boomerang(workflow)
 
-        if prompt:
-            self.set_prompt(workflow, prompt)
+        if "prompt" in kwargs:
+            self.set_prompt(workflow, kwargs["prompt"])
 
-        if resolution:
+        if "resolution" in kwargs:
+            resolution = kwargs["resolution"]
             if resolution == "random":
                 resolutions = ["640x480", "480x640", "512x512"]
                 self.set_resolution(workflow, random.choice(resolutions))
             else:
                 self.set_resolution(workflow, resolution)
 
-        if steps:
+        if "steps" in kwargs:
+            steps = kwargs["steps"]
             if steps == 'trirandom' or steps == 'random':
                 self.set_steps(workflow, random.triangular(6, 40, 20))
             else:
                 self.set_steps(workflow, steps)
 
-        if sampler:
+        if "sampler" in kwargs:
+            sampler = kwargs["sampler"]
             samplers = ['euler', # 20 Better, 10 Good, 8 decent
                         # 'euler_cfg_pp',  # Trash at 20 steps
                         # 'euler_ancestral', # NEED TO TEST 
@@ -315,7 +318,8 @@ class ComfyClient:
             else:
                 print("Sampler doesn't exit. Using default")
 
-        if scheduler:
+        if "scheduler" in kwargs:
+            scheduler = kwargs["scheduler"]
             schedulers = ['normal',
                           'karras', # Don't use with euler at 20 steps
                           'exponential',
@@ -332,7 +336,8 @@ class ComfyClient:
             else:
                 print("Scheduler doesn't exit. Using default")
 
-        if lora:
+        if "lora" in kwargs:
+            lora = kwargs["lora"]
             lora_nodes = self.get_lora_nodes(workflow)
             if len(lora_nodes) != len(lora):
                 print("Lora parameter mismatched. Exiting")
@@ -356,7 +361,8 @@ class ComfyClient:
                     print("Lora strength out of range. Staying to default")
                     continue
 
-        if guidance:
+        if "guidance":
+            guidance = kwargs["guidance"]
             if guidance == 'random':
                 self.set_guidance(workflow, random.uniform(1.0, 15.0))
             else:
