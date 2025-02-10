@@ -13,6 +13,7 @@ import numpy as np
 import tempfile
 import time
 import platform
+import sys
 
 def print_keys(d):
     for key, value in d.items():
@@ -194,12 +195,12 @@ class ComfyClient:
                 workflow[key]['inputs']['height'] = resolution[1]
                 print(f"Resolution: {resolution[0]}x{resolution[1]}")
 
-    def set_lora_strength(self, workflow, lora, lora_strength):
+    def set_lora_strength(self, workflow, lora_key, lora, lora_strength):
         for key, value in workflow.items():
-            if value['class_type'] == 'LoraLoaderModelOnly':
-                if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
-                    workflow[key]['inputs']['strength_model'] = lora_strength
-                    print(f"Setting strength for {lora} to {lora_strength}")
+            if key == lora_key:
+                workflow[key]['inputs']['lora_name'] = lora + ".safetensors"
+                workflow[key]['inputs']['strength_model'] = lora_strength
+                print(f"Setting strength for {lora} to {lora_strength}")
 
     def set_steps(self, workflow, steps):
         for key, value in workflow.items():
@@ -225,11 +226,18 @@ class ComfyClient:
                 workflow[key]['inputs']['guidance'] = guidance
                 print(f"Guidance: {guidance}")
 
-    def get_lora_strength(self, workflow, lora):
+    # def get_lora_strength(self, workflow, lora):
+    #     for key, value in workflow.items():
+    #         if value['class_type'] == 'LoraLoaderModelOnly':
+    #             if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
+    #                 return workflow[key]['inputs']['strength_model']
+
+    def get_lora_nodes(self, workflow):
+        lora_nodes = []
         for key, value in workflow.items():
             if value['class_type'] == 'LoraLoaderModelOnly':
-                if workflow[key]['inputs']['lora_name'].split(".")[0] == lora:
-                    return workflow[key]['inputs']['strength_model']
+                lora_nodes.append(key)
+        return lora_nodes
 
     def run_workflow(self, workflow, seed, prompt, length, boomerang, resolution, lora, steps, sampler, scheduler, guidance):
         try:
@@ -309,7 +317,7 @@ class ComfyClient:
 
         if scheduler:
             schedulers = ['normal',
-                          'karras',
+                          'karras', # Don't use with euler at 20 steps
                           'exponential',
                           'sgm_uniform',
                           'simple',
@@ -325,22 +333,25 @@ class ComfyClient:
                 print("Scheduler doesn't exit. Using default")
 
         if lora:
+            lora_nodes = self.get_lora_nodes(workflow)
+            if len(lora_nodes) != len(lora):
+                print("Lora parameter mismatched. Exiting")
+                sys.exit(1)
             for l in lora:
                 l = l.split("=")
                 if len(l) != 2:
-                    print("Bad format for lora. Staying to default")
-                    continue
+                    print("Lora parameter incorrect. Exiting")
+                    sys.exit(1)
                 if l[1] == 'trirandom':
                     print(f"Setting triangular random lora strength for {l[0]}")
-                    current_lora_strength = self.get_lora_strength(workflow, l[0])
-                    random_strength = random.triangular(0.0, 2.0, current_lora_strength)
-                    self.set_lora_strength(workflow, l[0], round(random_strength, 2))
-                    continue
-                if l[1] == 'random':
+                    # current_lora_strength = self.get_lora_strength(workflow, l[0])
+                    random_strength = random.triangular(0.0, 1.3, 0.85)
+                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], round(random_strength, 2))
+                elif l[1] == 'random':
                     print(f"Setting random lora strength for {l[0]}")
-                    self.set_lora_strength(workflow, l[0], round(random.uniform(0.0, 1.5), 2))
-                if float(l[1]) < 2.0 or float(l[1]) > 0.0:
-                    self.set_lora_strength(workflow, l[0], l[1])
+                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], round(random.uniform(0.0, 1.5), 2))
+                elif float(l[1]) < 2.0 or float(l[1]) > 0.0:
+                    self.set_lora_strength(workflow, lora_nodes.pop(), l[0], l[1])
                 else:
                     print("Lora strength out of range. Staying to default")
                     continue
