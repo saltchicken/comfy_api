@@ -416,7 +416,6 @@ class ComfyClient:
                 self.set_guidance(guidance)
 
         self.client_id = random.randint(10**14, 10**15 -1)
-        print(f"Client ID: {self.client_id}")
         self.client_id = str(self.client_id)
 
 
