@@ -246,17 +246,11 @@ class ComfyClient:
         if "lora" in kwargs:
             lora = kwargs["lora"]
             if len(lora) == 1:
-                workflow_file = "SingleLoraHunyuan.json"
+                workflow_file = "templates/SingleLoraHunyuan.json"
             elif len(lora) == 2:
-                workflow_file = "DoubleLoraHunyuan.json"
+                workflow_file = "templates/DoubleLoraHunyuan.json"
             elif len(lora) == 3:
-                workflow_file = "TripleLoraHunyuan.json"
-            elif len(lora) == 4:
-                workflow_file = "QuadLoraHunyuan.json"
-            elif len(lora) == 5:
-                workflow_file = "PentaLoraHunyuan.json"
-            elif len(lora) == 6:
-                workflow_file = "HexaLoraHunyuan.json"
+                workflow_file = "templates/TripleLoraHunyuan.json"
             else:
                 print("Too many Loras. Exiting")
             with open(workflow_file, "r") as f:
