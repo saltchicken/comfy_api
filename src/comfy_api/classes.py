@@ -127,9 +127,9 @@ class ComfyClient:
 
                     cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
 
-                    if platform.system() == "Linux":
-                        print("Linux is using fullscreen")
-                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                    # if platform.system() == "Linux":
+                    #     print("Linux is using fullscreen")
+                    #     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
                     cap = cv2.VideoCapture(temp_filename)
 
