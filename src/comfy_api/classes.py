@@ -14,6 +14,9 @@ import tempfile
 import time
 import platform
 import sys
+from pathlib import Path
+
+script_dir = Path(__file__).parent
 
 def print_keys(d):
     for key, value in d.items():
@@ -26,6 +29,7 @@ class ComfyClient:
         self.client_id = str(uuid.uuid4())
         self.server_address = server_address
         self.workflow = None
+        self.running = False
 
     def queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -120,8 +124,9 @@ class ComfyClient:
                     temp_video.write(video_data)
                     temp_filename = temp_video.name  # Get the file path
 
+                    cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
+
                     if platform.system() == "Linux":
-                        cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
                         cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
                     cap = cv2.VideoCapture(temp_filename)
@@ -129,7 +134,8 @@ class ComfyClient:
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
 
-                    while True:  # Infinite loop for replaying video
+                    self.running = True
+                    while self.running:  # Infinite loop for replaying video
                         cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to start
 
                         while cap.isOpened():
@@ -144,10 +150,19 @@ class ComfyClient:
                             # Wait to maintain FPS
                             elapsed_time = time.time() - start_time
                             delay = max(1, int((frame_time - elapsed_time) * 1000))  # Convert to ms
-                            if cv2.waitKey(delay) & 0xFF == ord('q'):  # Press 'q' to exit
-                                cap.release()
-                                cv2.destroyAllWindows()
-                                exit()
+                            key = cv2.waitKey(delay)
+                            if key == ord('q'):  # Press 'q' to exit
+                                self.running = False
+                                break
+                            elif key == ord('f'):
+                                fullscreen_status = cv2.getWindowProperty("Video", cv2.WND_PROP_FULLSCREEN)
+                                if fullscreen_status == cv2.WINDOW_FULLSCREEN:
+                                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                                else:
+                                    x, y, width, height = cv2.getWindowImageRect("Video")
+                                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                                    cv2.moveWindow("Video", x, y)
+                                    cv2.resizeWindow("Video", (width, height))
 
                     cap.release()
                     cv2.destroyAllWindows()
@@ -246,11 +261,11 @@ class ComfyClient:
         if "lora" in kwargs:
             lora = kwargs["lora"]
             if len(lora) == 1:
-                workflow_file = "templates/SingleLoraHunyuan.json"
+                workflow_file = f"{script_dir}/templates/SingleLoraHunyuan.json"
             elif len(lora) == 2:
-                workflow_file = "templates/DoubleLoraHunyuan.json"
+                workflow_file = f"{script_dir}/templates/DoubleLoraHunyuan.json"
             elif len(lora) == 3:
-                workflow_file = "templates/TripleLoraHunyuan.json"
+                workflow_file = f"{script_dir}/templates/TripleLoraHunyuan.json"
             else:
                 print("Too many Loras. Exiting")
             with open(workflow_file, "r") as f:
@@ -284,7 +299,7 @@ class ComfyClient:
                     print("Lora strength out of range. Staying to default")
                     continue
         else:
-            workflow_file = "templates/BasicHunyuan.json"
+            workflow_file = f"{script_dir}/templates/BasicHunyuan.json"
 
             with open(workflow_file, "r") as f:
                 try:
