@@ -131,6 +131,9 @@ class ComfyClient:
                         cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
                     cap = cv2.VideoCapture(temp_filename)
+                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    cv2.resizeWindow("Video", width, height)
 
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
