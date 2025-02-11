@@ -302,7 +302,7 @@ class ComfyClient:
             self.set_length(kwargs["length"])
 
         if "boomerang" in kwargs:
-            self.set_boomerang()
+            self.set_boomerang(kwargs["boomerang"])
 
         if "prompt" in kwargs:
             self.set_prompt(kwargs["prompt"])
