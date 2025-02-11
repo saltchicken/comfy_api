@@ -158,14 +158,10 @@ class ComfyClient:
                             elif key == ord('f'):
                                 fullscreen_status = cv2.getWindowProperty("Video", cv2.WND_PROP_FULLSCREEN)
                                 if fullscreen_status == cv2.WINDOW_FULLSCREEN:
-                                    if platform.system() == "Linux":
-                                        x, y, width, height = cv2.getWindowImageRect("Video")
-                                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
-                                        cv2.moveWindow("Video", x, y)
-                                        cv2.resizeWindow("Video", (width, height))
-                                    else:
-                                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                                    print("Window is fullscreen")
+                                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
                                 else:
+                                    print("Window is not fullscreen")
                                     x, y, width, height = cv2.getWindowImageRect("Video")
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
                                     cv2.moveWindow("Video", x, y)
