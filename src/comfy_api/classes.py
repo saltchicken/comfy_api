@@ -284,7 +284,7 @@ class ComfyClient:
                     print("Lora strength out of range. Staying to default")
                     continue
         else:
-            workflow_file = "BasicHunyuan.json"
+            workflow_file = "templates/BasicHunyuan.json"
 
             with open(workflow_file, "r") as f:
                 try:
