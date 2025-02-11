@@ -137,6 +137,7 @@ class ComfyClient:
                     frame_time = 1 / fps if fps > 0 else 1 / 30  # Default to 30 FPS if unknown
 
                     self.running = True
+                    self.fullscreen = False
                     while self.running:  # Infinite loop for replaying video
                         cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to start
 
@@ -157,19 +158,18 @@ class ComfyClient:
                                 self.running = False
                                 break
                             elif key == ord('f'):
-                                fullscreen_status = cv2.getWindowProperty("Video", cv2.WND_PROP_FULLSCREEN)
-                                if fullscreen_status == cv2.WINDOW_FULLSCREEN:
+                                if self.fullscreen:
                                     print("Window is fullscreen")
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                                    self.fullscreen = False
                                 else:
                                     print("Window is not fullscreen")
                                     x, y, width, height = cv2.getWindowImageRect("Video")
                                     print(f"{x} {y} {width} {height}")
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-                                    if sys.platform == "linux":
-                                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
                                     cv2.resizeWindow("Video", (width, height))
                                     cv2.moveWindow("Video", x, y)
+                                    self.fullscreen = True
 
                     cap.release()
                     cv2.destroyAllWindows()
