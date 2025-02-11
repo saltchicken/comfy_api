@@ -15,3 +15,9 @@ comfy = "comfy_api.__main__:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"comfy_api" = ["templates/*.json"]
+
+[tool.setuptools]
+include-package-data = true
+
