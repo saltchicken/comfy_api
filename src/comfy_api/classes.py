@@ -166,8 +166,8 @@ class ComfyClient:
                                     x, y, width, height = cv2.getWindowImageRect("Video")
                                     print(f"{x} {y} {width} {height}")
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-                                    cv2.moveWindow("Video", x, y)
                                     cv2.resizeWindow("Video", (width, height))
+                                    cv2.moveWindow("Video", x, y)
 
                     cap.release()
                     cv2.destroyAllWindows()
