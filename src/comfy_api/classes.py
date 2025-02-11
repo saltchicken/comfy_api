@@ -16,7 +16,7 @@ import platform
 import sys
 from pathlib import Path
 
-script_dir = Path(__file__).parent
+script_dir = Path(__file__).parent + 'src/comfy_api'
 
 def print_keys(d):
     for key, value in d.items():
