@@ -30,10 +30,8 @@ def main():
     print(workflow_options)
 
     comfy_client = ComfyClient(args.host)
-    start_time = time.time()
-    videos = comfy_client.run_workflow(**workflow_options)
-    elapsed_time = round(time.time() - start_time, 2)
+    comfy_client.set_workflow_options(**workflow_options)
+    videos = comfy_client.run_workflow()
 
-    print(f"{elapsed_time=}")
     comfy_client.view_video(videos)
 

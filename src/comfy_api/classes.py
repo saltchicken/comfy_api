@@ -31,6 +31,16 @@ class ComfyClient:
         self.server_address = server_address
         self.workflow = None
         self.running = False
+        self.lora = None
+        self.seed = None
+        self.length = None
+        self.boomerang = None
+        self.prompt = None
+        self.resolution = None
+        self.steps = None
+        self.sampler = None
+        self.scheduler = None
+        self.guidance = None
 
     def queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -262,14 +272,13 @@ class ComfyClient:
                 lora_nodes.append(key)
         return lora_nodes
 
-    def run_workflow(self, **kwargs):
-        if "lora" in kwargs:
-            lora = kwargs["lora"]
-            if len(lora) == 1:
+    def set_workflow(self):
+        if self.lora:
+            if len(self.lora) == 1:
                 workflow_file = f"{script_dir}/templates/SingleLoraHunyuan.json"
-            elif len(lora) == 2:
+            elif len(self.lora) == 2:
                 workflow_file = f"{script_dir}/templates/DoubleLoraHunyuan.json"
-            elif len(lora) == 3:
+            elif len(self.lora) == 3:
                 workflow_file = f"{script_dir}/templates/TripleLoraHunyuan.json"
             else:
                 print("Too many Loras. Exiting")
@@ -282,10 +291,10 @@ class ComfyClient:
 
             lora_nodes = self.get_lora_nodes()
             # print(f"{lora_nodes=}")
-            if len(lora_nodes) != len(lora):
+            if len(lora_nodes) != len(self.lora):
                 print("Lora parameter mismatched. Exiting")
                 sys.exit(1)
-            for l in lora:
+            for l in self.lora:
                 l = l.split("=")
                 if len(l) != 2:
                     print("Lora parameter incorrect. Exiting")
@@ -321,37 +330,34 @@ class ComfyClient:
                     print("Could not open file {}".format(workflow_file))
                     exit(1)
 
-        if "seed" in kwargs:
-            self.set_seed(kwargs["seed"])
+        if self.seed:
+            self.set_seed(self.seed)
         else:
             self.set_seed(random.randint(10**14, 10**15 -1))
 
-        if "length" in kwargs:
-            self.set_length(kwargs["length"])
+        if self.length:
+            self.set_length(self.length)
 
-        if "boomerang" in kwargs:
-            self.set_boomerang(kwargs["boomerang"])
+        if self.boomerang:
+            self.set_boomerang(self.boomerang)
 
-        if "prompt" in kwargs:
-            self.set_prompt(kwargs["prompt"])
+        if self.prompt:
+            self.set_prompt(self.prompt)
 
-        if "resolution" in kwargs:
-            resolution = kwargs["resolution"]
-            if resolution == "random":
+        if self.resolution:
+            if self.resolution == "random":
                 resolutions = ["640x480", "480x640", "512x512"]
                 self.set_resolution(random.choice(resolutions))
             else:
-                self.set_resolution(resolution)
+                self.set_resolution(self.resolution)
 
-        if "steps" in kwargs:
-            steps = kwargs["steps"]
-            if steps == 'trirandom' or steps == 'random':
+        if self.steps:
+            if self.steps == 'trirandom' or self.steps == 'random':
                 self.set_steps(random.triangular(6, 40, 20))
             else:
-                self.set_steps(steps)
+                self.set_steps(self.steps)
 
-        if "sampler" in kwargs:
-            sampler = kwargs["sampler"]
+        if self.sampler:
             samplers = ['euler', # 20 Better, 10 Good, 8 decent
                         # 'euler_cfg_pp',  # Trash at 20 steps
                         # 'euler_ancestral', # NEED TO TEST 
@@ -385,15 +391,14 @@ class ComfyClient:
                         # 'uni_pc', # Trash
                         # 'uni_pc_bh2' # NEED TO TEST
                         ]
-            if sampler in samplers:
-                self.set_sampler(sampler)
+            if self.sampler in samplers:
+                self.set_sampler(self.sampler)
             elif sampler == 'random':
                 self.set_sampler(random.choice(samplers))
             else:
                 print("Sampler doesn't exit. Using default")
 
-        if "scheduler" in kwargs:
-            scheduler = kwargs["scheduler"]
+        if self.scheduler:
             schedulers = ['normal',
                           'karras', # Don't use with euler at 20 steps
                           'exponential',
@@ -403,24 +408,60 @@ class ComfyClient:
                           'beta',
                           'linear_quadratic',
                           'kl_optimal']
-            if scheduler in schedulers:
-                self.set_scheduler(scheduler)
-            elif scheduler == 'random':
+            if self.scheduler in schedulers:
+                self.set_scheduler(self.scheduler)
+            elif self.scheduler == 'random':
                 self.set_scheduler(random.choice(schedulers))
             else:
                 print("Scheduler doesn't exit. Using default")
 
-
-        if "guidance" in kwargs:
-            guidance = kwargs["guidance"]
-            if guidance == 'random':
+        if self.guidance:
+            if self.guidance == 'random':
                 self.set_guidance(random.uniform(1.0, 15.0))
             else:
-                self.set_guidance(guidance)
+                self.set_guidance(self.guidance)
+
+
+
+    def set_workflow_options(self, **kwargs):
+        if "lora" in kwargs:
+            self.lora = kwargs["lora"]
+
+        if "seed" in kwargs:
+            self.seed = kwargs["seed"]
+
+        if "length" in kwargs:
+            self.length = kwargs["length"]
+
+        if "boomerang" in kwargs:
+            self.boomerang = kwargs["boomerang"]
+
+        if "prompt" in kwargs:
+            self.prompt = kwargs["prompt"]
+
+        if "resolution" in kwargs:
+            self.resolution = kwargs["resolution"]
+
+        if "steps" in kwargs:
+            self.steps = kwargs["steps"]
+
+        if "sampler" in kwargs:
+            self.sampler = kwargs["sampler"]
+
+        if "scheduler" in kwargs:
+            self.scheduler = kwargs["scheduler"]
+
+        if "guidance" in kwargs:
+            self.guidance = kwargs["guidance"]
+
+
+    def run_workflow(self):
+        self.set_workflow()
 
         self.client_id = random.randint(10**14, 10**15 -1)
         self.client_id = str(self.client_id)
 
+        start_time = time.time()
 
         ws = websocket.WebSocket()
 
@@ -428,6 +469,9 @@ class ComfyClient:
         # images = get_images(ws, workflow)
         videos = self.get_videos(ws, self.workflow)
         ws.close()
+
+        elapsed_time = round(time.time() - start_time, 2)
+        print(f"{elapsed_time=} seconds elapsed")
         return videos
 
 
