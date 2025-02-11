@@ -218,11 +218,9 @@ class ComfyClient:
     def set_lora_strength(self, lora_key, lora, lora_strength):
         for key, value in self.workflow.items():
             if key == lora_key:
-                print(f"{lora=}")
                 self.workflow[key]['inputs']['lora_name'] = lora + ".safetensors"
                 self.workflow[key]['inputs']['strength_model'] = lora_strength
                 print(f"Setting strength for {lora} to {lora_strength}")
-                print(self.workflow)
 
     def set_steps(self, steps):
         for key, value in self.workflow.items():
@@ -289,8 +287,16 @@ class ComfyClient:
                 if len(l) != 2:
                     print("Lora parameter incorrect. Exiting")
                     sys.exit(1)
-                if l[1] == 'trirandom':
+                if 'trirandom' in l[1]:
                     print(f"Setting triangular random lora strength for {l[0]}")
+                    trirandom_split = l[1].split(":")
+                    if len(trirandom_split) == 2:
+                        random_strength = random.triangular(0.0, 1.3, float(trirandom_split[1]))
+                    elif len(trirandom_split) == 1:
+                        random_strength = random.triangular(0.0, 1.3, 0.85)
+                    else:
+                        print(f"Malformed lora {l}")
+                        exit(1)
                     # current_lora_strength = self.get_lora_strength(workflow, l[0])
                     random_strength = random.triangular(0.0, 1.3, 0.85)
                     self.set_lora_strength(lora_nodes.pop(), l[0], round(random_strength, 2))
