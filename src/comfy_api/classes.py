@@ -161,21 +161,20 @@ class ComfyClient:
                                 if self.fullscreen:
                                     print("Window is fullscreen")
                                     if platform.system() == "Linux":
-                                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-                                        x, y, width, height = cv2.getWindowImageRect("Video")
-                                        print(f"{x} {y} {width} {height}")
-                                        cv2.resizeWindow("Video", (width, height))
-                                        cv2.moveWindow("Video", x, y)
+                                        cv2.setWindowProperty("No Decorations", cv2.WND_PROP_BORDERLESS, 0)
                                     else:
                                         cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
                                     self.fullscreen = False
                                 else:
                                     print("Window is not fullscreen")
-                                    x, y, width, height = cv2.getWindowImageRect("Video")
-                                    print(f"{x} {y} {width} {height}")
-                                    cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-                                    cv2.resizeWindow("Video", (width, height))
-                                    cv2.moveWindow("Video", x, y)
+                                    if platform.system() == "Linux":
+                                        cv2.setWindowProperty("No Decorations", cv2.WND_PROP_BORDERLESS, 1)
+                                    else:
+                                        x, y, width, height = cv2.getWindowImageRect("Video")
+                                        print(f"{x} {y} {width} {height}")
+                                        cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                                        cv2.resizeWindow("Video", (width, height))
+                                        cv2.moveWindow("Video", x, y)
                                     self.fullscreen = True
 
                     cap.release()
