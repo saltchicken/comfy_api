@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 script_dir = Path(__file__).parent
-print(f"{script_dir=}")
+# print(f"{script_dir=}")
 
 def print_keys(d):
     for key, value in d.items():
@@ -159,6 +159,11 @@ class ComfyClient:
                                 fullscreen_status = cv2.getWindowProperty("Video", cv2.WND_PROP_FULLSCREEN)
                                 if fullscreen_status == cv2.WINDOW_FULLSCREEN:
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                                    if platform.system() == "Linux":
+                                        x, y, width, height = cv2.getWindowImageRect("Video")
+                                        cv2.moveWindow("Video", x, y)
+                                        cv2.resizeWindow("Video", (width, height))
+
                                 else:
                                     x, y, width, height = cv2.getWindowImageRect("Video")
                                     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
