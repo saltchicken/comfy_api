@@ -26,21 +26,21 @@ def print_keys(d):
         # print(f"Value: {value}")
 
 class ComfyClient:
-    def __init__(self, server_address):
+    def __init__(self, server_address, **kwargs):
         self.client_id = str(uuid.uuid4())
         self.server_address = server_address
         self.workflow = None
         self.running = False
-        self.lora = None
-        self.seed = None
-        self.length = None
-        self.boomerang = None
-        self.prompt = None
-        self.resolution = None
-        self.steps = None
-        self.sampler = None
-        self.scheduler = None
-        self.guidance = None
+        self.lora = kwargs["lora"] if "lora" in kwargs else None
+        self.seed = kwargs["seed"] if "seed" in kwargs else None
+        self.length = kwargs["length"] if "length" in kwargs else None
+        self.boomerang = kwargs["boomerang"] if "boomerang" in kwargs else None
+        self.prompt = kwargs["prompt"] if "prompt" in kwargs else None
+        self.resolution = kwargs["resolution"] if "resolution" in kwargs else None
+        self.steps = kwargs["steps"] if "steps" in kwargs else None
+        self.sampler = kwargs["sampler"] if "sampler" in kwargs else None
+        self.scheduler = kwargs["scheduler"] if "scheduler" in kwargs else None
+        self.guidance = kwargs["guidance"] if "guidance" in kwargs else None
 
     def queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -420,40 +420,6 @@ class ComfyClient:
                 self.set_guidance(random.uniform(1.0, 15.0))
             else:
                 self.set_guidance(self.guidance)
-
-
-
-    def set_workflow_options(self, **kwargs):
-        if "lora" in kwargs:
-            self.lora = kwargs["lora"]
-
-        if "seed" in kwargs:
-            self.seed = kwargs["seed"]
-
-        if "length" in kwargs:
-            self.length = kwargs["length"]
-
-        if "boomerang" in kwargs:
-            self.boomerang = kwargs["boomerang"]
-
-        if "prompt" in kwargs:
-            self.prompt = kwargs["prompt"]
-
-        if "resolution" in kwargs:
-            self.resolution = kwargs["resolution"]
-
-        if "steps" in kwargs:
-            self.steps = kwargs["steps"]
-
-        if "sampler" in kwargs:
-            self.sampler = kwargs["sampler"]
-
-        if "scheduler" in kwargs:
-            self.scheduler = kwargs["scheduler"]
-
-        if "guidance" in kwargs:
-            self.guidance = kwargs["guidance"]
-
 
     def run_workflow(self):
         self.set_workflow()

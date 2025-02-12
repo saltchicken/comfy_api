@@ -27,10 +27,7 @@ def main():
         if k not in ['host'] and v is not None
     }
 
-    print(workflow_options)
-
-    comfy_client = ComfyClient(args.host)
-    comfy_client.set_workflow_options(**workflow_options)
+    comfy_client = ComfyClient(args.host, **workflow_options)
     videos = comfy_client.run_workflow()
 
     comfy_client.view_video(videos)
