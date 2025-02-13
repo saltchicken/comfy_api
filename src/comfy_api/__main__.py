@@ -18,17 +18,19 @@ def main():
     parser.add_argument('--sampler', help='Set sampler for the diffusion process')
     parser.add_argument('--scheduler', help='Set scheduler for the diffusion process')
     parser.add_argument('--guidance', help='Set guidance scale for the diffusion process')
+    parser.add_argument('--show', action="store_true", help='Show the returned output')
 
     args = parser.parse_args()
 
     # Extract optional arguments into a dictionary
     workflow_options = { 
         k: v for k, v in vars(args).items() 
-        if k not in ['host'] and v is not None
+        if k not in ['host', 'show'] and v is not None
     }
 
     comfy_client = ComfyClient(args.host, **workflow_options)
     videos = comfy_client.run_workflow()
 
-    comfy_client.view_video(videos)
+    if args.show:
+        comfy_client.view_video(videos)
 
