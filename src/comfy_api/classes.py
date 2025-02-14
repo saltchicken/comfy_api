@@ -31,7 +31,7 @@ class ComfyClient:
         self.server_address = server_address
         self.workflow = None
         self.running = False
-        self.lora = kwargs["lora"] if "lora" in kwargs else None
+        self.lora = kwargs["lora"] if "lora" in kwargs else []
         self.seed = kwargs["seed"] if "seed" in kwargs else None
         self.length = kwargs["length"] if "length" in kwargs else None
         self.boomerang = kwargs["boomerang"] if "boomerang" in kwargs else None
@@ -41,6 +41,14 @@ class ComfyClient:
         self.sampler = kwargs["sampler"] if "sampler" in kwargs else None
         self.scheduler = kwargs["scheduler"] if "scheduler" in kwargs else None
         self.guidance = kwargs["guidance"] if "guidance" in kwargs else None
+
+    def get_loras(self, folder=None):
+        req = urllib.request.Request("http://{}/models/loras".format(self.server_address))
+        lora_list = json.loads(urllib.request.urlopen(req).read())
+        loras = [l.removesuffix(".safetensors") for l in lora_list]
+        if folder:
+            loras = [l for l in loras if l.startswith(folder)]
+        return loras
 
     def queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -273,7 +281,7 @@ class ComfyClient:
         return lora_nodes
 
     def set_workflow(self):
-        if self.lora:
+        if len(self.lora) > 0:
             if len(self.lora) == 1:
                 workflow_file = f"{script_dir}/templates/SingleLoraHunyuan.json"
             elif len(self.lora) == 2:
