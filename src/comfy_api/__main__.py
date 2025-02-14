@@ -1,5 +1,7 @@
 import argparse
 import time
+import numpy as np
+import random
 from .classes import ComfyClient
 
 def main():
@@ -19,6 +21,7 @@ def main():
     parser.add_argument('--scheduler', help='Set scheduler for the diffusion process')
     parser.add_argument('--guidance', help='Set guidance scale for the diffusion process')
     parser.add_argument('--show', action="store_true", help='Show the returned output')
+    parser.add_argument('--randomize', help='Randomize the loras and run the workflow')
 
     args = parser.parse_args()
 
@@ -28,9 +31,38 @@ def main():
         if k not in ['host', 'show'] and v is not None
     }
 
-    comfy_client = ComfyClient(args.host, **workflow_options)
-    videos = comfy_client.run_workflow()
+    comfy = ComfyClient(args.host, **workflow_options)
+    if args.randomize:
+        print(f"Randomizing {args.randomize}")
 
-    if args.show:
-        comfy_client.view_video(videos)
+        rand_params = args.randomize.split(":")
+        if len(rand_params) == 1:
+            num_loras = int(rand_params[0])
+            print("Total for loras defaulting to 1")
+            total = 1
+        elif len(rand_params) == 2:
+            num_loras = int(rand_params[0])
+            total = float(rand_params[1])
+        else:
+            print("Incorrect randomize format. Exiting.")
+            exit(1)
 
+        loras = comfy.get_loras("persons")
+        try:
+            while True:
+                strengths = np.round(np.random.dirichlet([1] * num_loras) * total, 2)
+                selected_loras = random.sample(loras, num_loras)
+                comfy.lora = []
+                for i in range(num_loras):
+                    comfy.lora.append(f"{selected_loras[i]}={strengths[i]}")
+                videos = comfy.run_workflow()
+                if args.show:
+                    comfy.view_video(videos)
+        except KeyboardInterrupt:
+            print("\nLoop terminated by user.")
+
+    else:
+        videos = comfy.run_workflow()
+
+        if args.show:
+            comfy.view_video(videos)
