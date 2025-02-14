@@ -2,6 +2,17 @@ local mp = require("mp")
 local utils = require("mp.utils")
 
 -- TODO: Add check if video was retrieved from API
+local function is_windows()
+	local windows = package.config:sub(1, 1) == "\\"
+
+	if windows then
+		print("Running on Windows")
+		return true
+	else
+		print("Running on Linux or macOS")
+		return false
+	end
+end
 
 local function get_field(parsed_comment, field)
 	local output_field = {}
@@ -59,7 +70,23 @@ local function print_comfy_data()
 	local prompt = get_field(parsed_comment, "prompt")
 	print(prompt[1])
 
+	local command = "--randomize"
+	return command
+
 	-- Iterate through the parsed JSON structure
 end
 
+local function run_comfy_data()
+	-- local command = print_comfy_data()
+	if is_windows() then
+		os.execute("comfy --host 10.0.0.3:8188 --length 5" .. " " .. command)
+	else
+		os.execute("conda run -n comfy_api bash comfy --host 10.0.0.3:8188" .. " " .. command)
+	end
+end
+
 mp.add_key_binding("p", "print", print_comfy_data)
+mp.add_key_binding("P", "run_comfy_data", function()
+	print("Running")
+	run_comfy_data()
+end)
