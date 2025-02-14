@@ -62,7 +62,9 @@ def main():
             print("\nLoop terminated by user.")
 
     else:
-        videos = comfy.run_workflow()
+        # videos = comfy.run_workflow()
+        video_path = comfy.run_workflow()
+        # return video_path
 
         if args.show:
             comfy.view_video(videos)

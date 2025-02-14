@@ -136,6 +136,32 @@ class ComfyClient:
 
         return output_videos
 
+    def get_videos_filename(self, ws, prompt):
+        prompt_id = self.queue_prompt(prompt)['prompt_id']
+        output_videos = {}
+        while True:
+            out = ws.recv()
+            if isinstance(out, str):
+                message = json.loads(out)
+                if message['type'] == 'executing':
+                    data = message['data']
+                    if data['node'] is None and data['prompt_id'] == prompt_id:
+                        break #Execution is done
+            else:
+                # If you want to be able to decode the binary stream for latent previews, here is how you can do it:
+                # bytesIO = BytesIO(out[8:])
+                # preview_image = Image.open(bytesIO) # This is your preview in PIL image format, store it in a global
+                continue #previews are binary data
+
+        history = self.get_history(prompt_id)[prompt_id]
+        for node_id in history['outputs']:
+            node_output = history['outputs'][node_id]
+            # print(node_output)
+            videos_output = []
+            if 'gifs' in node_output:
+                for video in node_output['gifs']:
+                    return video['filename']
+
     def view_video(self, videos):
         for node_id in videos:
             for video_data in videos[node_id]:
@@ -441,11 +467,14 @@ class ComfyClient:
 
         ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
         # images = get_images(ws, workflow)
-        videos = self.get_videos(ws, self.workflow)
+        # videos = self.get_videos(ws, self.workflow)
+        video_path = self.get_videos_filename(ws, self.workflow)
         ws.close()
 
         elapsed_time = round(time.time() - start_time, 2)
         print(f"{elapsed_time=} seconds elapsed")
-        return videos
+        print(f"video_path: {video_path}")
+        # return videos
+        return video_path
 
 
