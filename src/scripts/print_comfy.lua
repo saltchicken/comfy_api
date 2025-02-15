@@ -48,8 +48,7 @@ local function get_field(parsed_comment, field)
 	return output_field
 end
 
--- Get metadatao
-local function print_comfy_data()
+local function get_parsed_comment()
 	local metadata = mp.get_property_native("metadata")
 
 	if not metadata or not metadata["comment"] then
@@ -57,16 +56,25 @@ local function print_comfy_data()
 		return
 	end
 
-	local comment = metadata["comment"]
+	local parsed_comment = metadata["comment"]
 	-- mp.msg.info("Raw Comment: " .. comment)
 
 	-- Try parsing the top-level comment as JSON
-	local parsed_comment = utils.parse_json(comment)
+	local parsed_comment = utils.parse_json(parsed_comment)
 	if not parsed_comment then
 		mp.msg.warn("Failed to parse comment as JSON")
 		return
+	else
+		return parsed_comment
 	end
+end
 
+-- Get metadatao
+local function print_comfy_data()
+	local parsed_comment = get_parsed_comment()
+	if not parsed_comment then
+		return
+	end
 	local parameters = ""
 
 	local loras = get_field(parsed_comment, "lora")
@@ -119,15 +127,22 @@ local function run_comfy_data()
 			end
 			print("Video path not found")
 			handle:close()
-			return ""
+			return
 		end
 	end
 end
 
-mp.add_key_binding("p", "print", print_comfy_data)
+mp.add_key_binding("p", "print", function()
+	local parameters = print_comfy_data()
+	print(parameters)
+end)
 mp.add_key_binding("P", "run_comfy_data", function()
 	local video_path = run_comfy_data()
-	-- print("YES " .. video_path)
-	local cwd = os.getenv("PWD")
-	replace_video(cwd .. "/" .. video_path)
+	if video_path then
+		-- print("YES " .. video_path)
+		local cwd = os.getenv("PWD")
+		replace_video(cwd .. "/" .. video_path)
+	else
+		print("run_comfy_data failed. None was returned. Doing nothing")
+	end
 end)
