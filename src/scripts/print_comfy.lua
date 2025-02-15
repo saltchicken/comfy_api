@@ -93,6 +93,21 @@ local function print_comfy_data()
 	-- Iterate through the parsed JSON structure
 end
 
+local function user_modify_parameters(parameters)
+	local result
+	local script_dir = debug.getinfo(1, "S").source:match("@(.*)/")
+	if parameters then
+		local handle = io.popen("python " .. script_dir .. "/input_gui.py " .. parameters)
+		if handle then
+			result = handle:read("*a")
+			handle:close()
+		end
+		if result ~= "None\n" then
+			return result
+		end
+	end
+end
+
 function replace_video(video_path)
 	mp.commandv("loadfile", video_path, "replace")
 end
@@ -108,10 +123,18 @@ end
 -- end
 local function run_comfy_data()
 	local parameters = print_comfy_data()
+	local modified_parameters = user_modify_parameters(parameters)
+	if modified_parameters then
+		print("Modified parameters: " .. modified_parameters)
+		parameters = modified_parameters
+	else
+		print("User prompt was exited")
+		return
+	end
 
 	-- local command = "comfy --host 10.0.0.3:8188 " .. parameters
 	local command = "comfy --host 10.0.0.3:8188 " .. parameters
-	print(command)
+	print("Command: " .. command)
 
 	if is_windows() then
 		os.execute(command)
