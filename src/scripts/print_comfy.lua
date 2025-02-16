@@ -29,10 +29,12 @@ local function get_field(parsed_comment, field)
 							if sub_value["inputs"] then
 								output_field[sub_value["inputs"]["lora_name"]] = sub_value["inputs"]["strength_model"]
 							end
-						else
-							if sub_value["class_type"] == "CLIPTextEncode" and field == "prompt" then
-								table.insert(output_field, sub_value["inputs"]["text"])
-							end
+						end
+						if sub_value["class_type"] == "CLIPTextEncode" and field == "prompt" then
+							table.insert(output_field, sub_value["inputs"]["text"])
+						end
+						if sub_value["class_type"] == "RandomNoise" and field == "seed" then
+							table.insert(output_field, string.format("%.0f", sub_value["inputs"]["noise_seed"]))
 						end
 					else
 						print("Sub_value not a table")
@@ -82,11 +84,15 @@ local function print_comfy_data()
 	local suffix = ".safetensors"
 	for key, value in pairs(loras) do
 		key = key:sub(1, -#suffix - 1)
-		parameters = parameters .. key .. "=" .. value .. " "
+		parameters = parameters .. key .. "=" .. value
 	end
 	local prompt = get_field(parsed_comment, "prompt")
-	parameters = parameters .. "--prompt "
+	parameters = parameters .. " --prompt "
 	parameters = parameters .. '"' .. prompt[1] .. '"'
+	local seed = get_field(parsed_comment, "seed")
+	parameters = parameters .. " --seed " .. seed[1]
+
+	print("Parameters: " .. parameters)
 
 	return parameters
 
