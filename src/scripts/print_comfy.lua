@@ -36,6 +36,13 @@ local function get_field(parsed_comment, field)
 						if sub_value["class_type"] == "RandomNoise" and field == "seed" then
 							table.insert(output_field, string.format("%.0f", sub_value["inputs"]["noise_seed"]))
 						end
+						if sub_value["class_type"] == "EmptyHunyuanLatentVideo" and field == "resolution" then
+							table.insert(output_field, string.format("%.0f", sub_value["inputs"]["width"]))
+							table.insert(output_field, string.format("%.0f", sub_value["inputs"]["height"]))
+						end
+						if sub_value["class_type"] == "EmptyHunyuanLatentVideo" and field == "length" then
+							table.insert(output_field, string.format("%.0f", sub_value["inputs"]["length"]))
+						end
 					else
 						print("Sub_value not a table")
 					end
@@ -84,13 +91,17 @@ local function print_comfy_data()
 	local suffix = ".safetensors"
 	for key, value in pairs(loras) do
 		key = key:sub(1, -#suffix - 1)
-		parameters = parameters .. key .. "=" .. value
+		parameters = parameters .. key .. "=" .. value .. " "
 	end
 	local prompt = get_field(parsed_comment, "prompt")
-	parameters = parameters .. " --prompt "
+	parameters = parameters .. "--prompt "
 	parameters = parameters .. '"' .. prompt[1] .. '"'
 	local seed = get_field(parsed_comment, "seed")
 	parameters = parameters .. " --seed " .. seed[1]
+	local resolution = get_field(parsed_comment, "resolution")
+	parameters = parameters .. " --resolution " .. resolution[1] .. "x" .. resolution[2]
+	local length = get_field(parsed_comment, "length")
+	parameters = parameters .. " --length " .. length[1]
 
 	print("Parameters: " .. parameters)
 
