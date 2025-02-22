@@ -47,7 +47,7 @@ def main():
             print("Incorrect randomize format. Exiting.")
             exit(1)
 
-        loras = comfy.get_loras("persons")
+        loras = comfy.get_loras("")
         try:
             while True:
                 strengths = np.round(np.random.dirichlet([1] * num_loras) * total, 2)
