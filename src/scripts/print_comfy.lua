@@ -179,9 +179,9 @@ end)
 mp.add_key_binding("P", "run_comfy_data", function()
 	local video_path = run_comfy_data()
 	if video_path then
-		-- print("YES " .. video_path)
-		local cwd = os.getenv("PWD")
-		replace_video(cwd .. "/" .. video_path)
+		print("Created " .. video_path)
+		-- local cwd = os.getenv("PWD")
+		-- replace_video(cwd .. "/" .. video_path)
 	else
 		print("run_comfy_data failed. None was returned. Doing nothing")
 	end
