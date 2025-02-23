@@ -302,7 +302,7 @@ class ComfyClient:
     def get_lora_nodes(self):
         lora_nodes = []
         for key, value in self.workflow.items():
-            if type(value) != int and type(value) != list:
+            if type(value) != int and type(value) != list and type(value) != float:
                 if "class_type" in value:
                     if value['class_type'] == 'LoraLoaderModelOnly':
                         lora_nodes.append(key)
