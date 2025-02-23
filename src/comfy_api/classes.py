@@ -314,6 +314,8 @@ class ComfyClient:
                 workflow_file = f"{script_dir}/templates/DoubleLoraHunyuan.json"
             elif len(self.lora) == 3:
                 workflow_file = f"{script_dir}/templates/TripleLoraHunyuan.json"
+            elif len(self.lora) == 4:
+                worlkflow_file = f"{script_dir}/templates/FourLoraHunyuan.json"
             else:
                 print("Too many Loras. Exiting")
             with open(workflow_file, "r") as f:
