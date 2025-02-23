@@ -1,1 +1,259 @@
-{"last_node_id":84,"last_link_id":37,"nodes":[{"id":10,"type":"VAELoader","pos":[100,130],"size":[315,58],"flags":{},"order":0,"mode":0,"inputs":[],"outputs":[{"name":"VAE","localized_name":"VAE","type":"VAE","links":[30]}],"properties":{"Node name for S&R":"VAELoader"},"widgets_values":["hunyuan_video_vae_bf16.safetensors"]},{"id":11,"type":"DualCLIPLoader","pos":[100,318],"size":[315,106],"flags":{},"order":1,"mode":0,"inputs":[],"outputs":[{"name":"CLIP","localized_name":"CLIP","type":"CLIP","links":[27]}],"properties":{"Node name for S&R":"DualCLIPLoader"},"widgets_values":["clip_l.safetensors","llava_llama3_fp8_scaled.safetensors","hunyuan_video","default"]},{"id":12,"type":"UNETLoader","pos":[100,554],"size":[315,82],"flags":{},"order":2,"mode":0,"inputs":[],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[34]}],"properties":{"Node name for S&R":"UNETLoader"},"widgets_values":["hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors","fp8_e4m3fn_fast"]},{"id":13,"type":"SamplerCustomAdvanced","pos":[2604.199951171875,130],"size":[355.20001220703125,106],"flags":{},"order":15,"mode":0,"inputs":[{"name":"noise","localized_name":"noise","type":"NOISE","link":18},{"name":"guider","localized_name":"guider","type":"GUIDER","link":19},{"name":"sampler","localized_name":"sampler","type":"SAMPLER","link":20},{"name":"sigmas","localized_name":"sigmas","type":"SIGMAS","link":21},{"name":"latent_image","localized_name":"latent_image","type":"LATENT","link":22}],"outputs":[{"name":"output","localized_name":"output","type":"LATENT","links":[29]},{"name":"denoised_output","localized_name":"denoised_output","type":"LATENT","links":null}],"properties":{"Node name for S&R":"SamplerCustomAdvanced"}},{"id":16,"type":"KSamplerSelect","pos":[100,766],"size":[315,58],"flags":{},"order":3,"mode":0,"inputs":[],"outputs":[{"name":"SAMPLER","localized_name":"SAMPLER","type":"SAMPLER","links":[20]}],"properties":{"Node name for S&R":"KSamplerSelect"},"widgets_values":["euler"]},{"id":17,"type":"BasicScheduler","pos":[1847.4000244140625,130],"size":[315,106],"flags":{},"order":13,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":37}],"outputs":[{"name":"SIGMAS","localized_name":"SIGMAS","type":"SIGMAS","links":[21]}],"properties":{"Node name for S&R":"BasicScheduler"},"widgets_values":["normal",20,1]},{"id":22,"type":"BasicGuider","pos":[2262.39990234375,130],"size":[241.79998779296875,46],"flags":{},"order":14,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":24},{"name":"conditioning","localized_name":"conditioning","type":"CONDITIONING","link":25}],"outputs":[{"name":"GUIDER","localized_name":"GUIDER","type":"GUIDER","links":[19]}],"properties":{"Node name for S&R":"BasicGuider"}},{"id":25,"type":"RandomNoise","pos":[100,954],"size":[315,82],"flags":{},"order":4,"mode":0,"inputs":[],"outputs":[{"name":"NOISE","localized_name":"NOISE","type":"NOISE","links":[18]}],"properties":{"Node name for S&R":"RandomNoise"},"widgets_values":[860464950119354,"randomize"]},{"id":26,"type":"FluxGuidance","pos":[1015,130],"size":[317.4000244140625,58],"flags":{},"order":8,"mode":0,"inputs":[{"name":"conditioning","localized_name":"conditioning","type":"CONDITIONING","link":26}],"outputs":[{"name":"CONDITIONING","localized_name":"CONDITIONING","type":"CONDITIONING","links":[25]}],"properties":{"Node name for S&R":"FluxGuidance"},"widgets_values":[10]},{"id":44,"type":"CLIPTextEncode","pos":[515,130],"size":[400,200],"flags":{},"order":6,"mode":0,"inputs":[{"name":"clip","localized_name":"clip","type":"CLIP","link":27}],"outputs":[{"name":"CONDITIONING","localized_name":"CONDITIONING","type":"CONDITIONING","links":[26]}],"title":"CLIP Text Encode (Positive Prompt)","properties":{"Node name for S&R":"CLIPTextEncode"},"widgets_values":[""]},{"id":45,"type":"EmptyHunyuanLatentVideo","pos":[100,1166],"size":[315,130],"flags":{},"order":5,"mode":0,"inputs":[],"outputs":[{"name":"LATENT","localized_name":"LATENT","type":"LATENT","links":[22]}],"properties":{"Node name for S&R":"EmptyHunyuanLatentVideo"},"widgets_values":[512,512,73,1]},{"id":67,"type":"ModelSamplingSD3","pos":[1847.4000244140625,366],"size":[315,58],"flags":{},"order":12,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":36}],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[24]}],"properties":{"Node name for S&R":"ModelSamplingSD3"},"widgets_values":[7]},{"id":73,"type":"VAEDecodeTiled","pos":[3059.39990234375,130],"size":[315,150],"flags":{},"order":16,"mode":0,"inputs":[{"name":"samples","localized_name":"samples","type":"LATENT","link":29},{"name":"vae","localized_name":"vae","type":"VAE","link":30}],"outputs":[{"name":"IMAGE","localized_name":"IMAGE","type":"IMAGE","links":[31]}],"properties":{"Node name for S&R":"VAEDecodeTiled"},"widgets_values":[128,32,64,8]},{"id":78,"type":"VHS_VideoCombine","pos":[3474.39990234375,130],"size":[212.60000610351562,376],"flags":{},"order":17,"mode":0,"inputs":[{"name":"images","localized_name":"images","type":"IMAGE","link":31},{"name":"audio","localized_name":"audio","type":"AUDIO","shape":7,"link":null},{"name":"meta_batch","localized_name":"meta_batch","type":"VHS_BatchManager","shape":7,"link":null},{"name":"vae","localized_name":"vae","type":"VAE","shape":7,"link":null}],"outputs":[{"name":"Filenames","localized_name":"Filenames","type":"VHS_FILENAMES","links":null}],"properties":{"Node name for S&R":"VHS_VideoCombine"},"widgets_values":{"frame_rate":24,"loop_count":0,"filename_prefix":"Hunyuan ","format":"video/h264-mp4","pix_fmt":"yuv420p","crf":19,"save_metadata":true,"trim_to_audio":false,"pingpong":false,"save_output":true,"videopreview":{"hidden":false,"paused":false,"params":{}}}},{"id":79,"type":"LoraLoaderModelOnly","pos":[1015,318],"size":[315,82],"flags":{},"order":9,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":32}],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[33]}],"properties":{"Node name for S&R":"LoraLoaderModelOnly"},"widgets_values":["",1]},{"id":83,"type":"LoraLoaderModelOnly","pos":[515,460],"size":[315,82],"flags":{},"order":7,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":34}],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[32]}],"properties":{"Node name for S&R":"LoraLoaderModelOnly"},"widgets_values":["",1]},{"id":82,"type":"LoraLoaderModelOnly","pos":[1257.9251708984375,969.2990112304688],"size":[315,82],"flags":{},"order":10,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":33}],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[35],"slot_index":0}],"properties":{"Node name for S&R":"LoraLoaderModelOnly"},"widgets_values":["",1]},{"id":84,"type":"LoraLoaderModelOnly","pos":[1692.1612548828125,948.8494873046875],"size":[315,82],"flags":{},"order":11,"mode":0,"inputs":[{"name":"model","localized_name":"model","type":"MODEL","link":35}],"outputs":[{"name":"MODEL","localized_name":"MODEL","type":"MODEL","links":[36,37],"slot_index":0}],"properties":{"Node name for S&R":"LoraLoaderModelOnly"},"widgets_values":["",1]}],"links":[[18,25,0,13,0,"NOISE"],[19,22,0,13,1,"GUIDER"],[20,16,0,13,2,"SAMPLER"],[21,17,0,13,3,"SIGMAS"],[22,45,0,13,4,"LATENT"],[24,67,0,22,0,"MODEL"],[25,26,0,22,1,"CONDITIONING"],[26,44,0,26,0,"CONDITIONING"],[27,11,0,44,0,"CLIP"],[29,13,0,73,0,"LATENT"],[30,10,0,73,1,"VAE"],[31,73,0,78,0,"IMAGE"],[32,83,0,79,0,"MODEL"],[33,79,0,82,0,"MODEL"],[34,12,0,83,0,"MODEL"],[35,82,0,84,0,"MODEL"],[36,84,0,67,0,"MODEL"],[37,84,0,17,0,"MODEL"]],"groups":[],"config":{},"extra":{"ds":{"scale":0.5989500000000036,"offset":[-653.3166703544077,-55.87629038372063]},"node_versions":{"comfy-core":"0.3.14","comfyui-videohelpersuite":"1.5.2"}},"version":0.4}
+{
+  "10": {
+    "inputs": {
+      "vae_name": "hunyuan_video_vae_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "11": {
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "llava_llama3_fp8_scaled.safetensors",
+      "type": "hunyuan_video",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "12": {
+    "inputs": {
+      "unet_name": "hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors",
+      "weight_dtype": "fp8_e4m3fn_fast"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "13": {
+    "inputs": {
+      "noise": [
+        "25",
+        0
+      ],
+      "guider": [
+        "22",
+        0
+      ],
+      "sampler": [
+        "16",
+        0
+      ],
+      "sigmas": [
+        "17",
+        0
+      ],
+      "latent_image": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "16": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "17": {
+    "inputs": {
+      "scheduler": "normal",
+      "steps": 20,
+      "denoise": 1,
+      "model": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "22": {
+    "inputs": {
+      "model": [
+        "67",
+        0
+      ],
+      "conditioning": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "25": {
+    "inputs": {
+      "noise_seed": 860464950119354
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "26": {
+    "inputs": {
+      "guidance": 10,
+      "conditioning": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "44": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "45": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "length": 73,
+      "batch_size": 1
+    },
+    "class_type": "EmptyHunyuanLatentVideo",
+    "_meta": {
+      "title": "EmptyHunyuanLatentVideo"
+    }
+  },
+  "67": {
+    "inputs": {
+      "shift": 7,
+      "model": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
+  },
+  "73": {
+    "inputs": {
+      "tile_size": 128,
+      "overlap": 32,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "13",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE Decode (Tiled)"
+    }
+  },
+  "78": {
+    "inputs": {
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "Hunyuan ",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "73",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "79": {
+    "inputs": {
+      "lora_name": "",
+      "strength_model": 1,
+      "model": [
+        "83",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "82": {
+    "inputs": {
+      "lora_name": "",
+      "strength_model": 1,
+      "model": [
+        "79",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "83": {
+    "inputs": {
+      "lora_name": "",
+      "strength_model": 1,
+      "model": [
+        "12",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "84": {
+    "inputs": {
+      "lora_name": "",
+      "strength_model": 1,
+      "model": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  }
+}
